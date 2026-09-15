@@ -12,67 +12,33 @@ This guide provides a step-by-step walkthrough for integrating **Signal Service*
 
 The architecture operates in two distinct, sequential phases: **Client Connection & Room Subscription**, followed by **Backend Event Emission & Real-Time Relay**.
 
-```
-===================================================================================================
-PHASE 1: CLIENT CONNECTION & ROOM SUBSCRIPTION
-===================================================================================================
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Client User
+    participant Client as Frontend Client (signal.js)
+    participant Laravel as Laravel Backend
+    participant Signal as Signal Service (signal-service-api)
 
-[ Frontend Client (signal.js) ]
-       |
-       |  1. GET /api/signal-ticket (Auth Session)
-       v
-[ Laravel Backend ] ----------------------------------------+
-       |                                                    |
-       |  2. Generates & signs ticket with SIGNAL_SECRET    |
-       v                                                    |
-[ Return Signed Ticket ]                                    |
-  { appId, timestamp, projectId, userId, signature }         |
-       |                                                    |
-       |  3. Connect WebSocket (${SOCKET_URL}/notifications)|
-       |     Send ticket in handshake auth: { ... }         |
-       v                                                    |
-[ Signal Service (signal-service-api) ]                     |
-       |                                                    |
-       |  4. Verifies HMAC ticket signature                 |
-       |     Connection accepted!                           |
-       v                                                    |
-[ Frontend Client ]                                         |
-       |                                                    |
-       |  5. Emits "join_room" for target rooms             |
-       v     (project, app, user & custom channels)         |
-[ Subscribed to Rooms in Signal ]                           |
-                                                            |
-============================================================|======================================
-PHASE 2: BACKEND EVENT EMISSION & REAL-TIME RELAY           |
-============================================================|======================================
-                                                            |
-[ Laravel Application Action ]                              |
-  (Controller, Job, Observer, Service)                      |
-       |                                                    |
-       |  6. Call SignalService::taskEmit(...) or           |
-       |          SignalService::eventEmit(...)             |
-       v                                                    |
-[ SignalService::post('emit', $data) ] <--------------------+
-       |
-       |  7. Automatically computes HMAC signature:
-       |     sign($timestamp, $rawBody)
-       |     Attaches headers: x-project-id, x-timestamp, x-signature
-       |
-       |  8. HTTP POST /notifications/emit
-       v
-[ Signal Service (signal-service-api) ]
-       |
-       |  9. HmacAuthGuard verifies request signature
-       |  10. Routes message by target precedence (user, room, app, project)
-       |      Handles self_emit & sender exclusion via sender_socket_id
-       v
-[ Broadcast over WebSockets ]
-       |
-       |  11. Real-time event delivered to room subscribers
-       v
-[ Frontend Client (signal.js) ]
-       |
-       |  12. Triggers listeners: UI updates, progress bars, notification badges!
+    rect rgba(99, 102, 241, 0.08)
+    Note over Client,Signal: PHASE 1: Client Connection & Room Subscription
+    Client->>Laravel: 1. GET /api/signal-ticket (Auth Session)
+    Laravel-->>Client: 2. Return Signed Ticket (appId, timestamp, projectId, userId, signature)
+    Client->>Signal: 3. Connect WebSocket (${SOCKET_URL}/notifications) with Ticket in auth
+    Signal->>Signal: 4. Verify HMAC signature & timestamp freshness (<= 60s)
+    Signal-->>Client: Connection Accepted (Socket ID assigned)
+    Client->>Signal: 5. Emit "join_room" (Project, App, User & Custom Channels)
+    end
+
+    rect rgba(16, 185, 129, 0.08)
+    Note over Client,Signal: PHASE 2: Backend Event Emission & Real-Time Relay
+    Laravel->>Laravel: 6. Application Action triggers taskEmit() or eventEmit()
+    Laravel->>Laravel: 7. Automatically sign payload: sign(timestamp, rawBody)
+    Laravel->>Signal: 8. HTTP POST /notifications/emit (Headers: x-project-id, x-timestamp, x-signature)
+    Signal->>Signal: 9. HmacAuthGuard validates signature & resolves target rooms
+    Signal-->>Client: 10. Push Event over WebSocket to Room Subscribers
+    Client->>Client: 11. Execute Listener Callback (UI update, progress toast, badge counter)
+    end
 ```
 
 ---
@@ -81,33 +47,38 @@ PHASE 2: BACKEND EVENT EMISSION & REAL-TIME RELAY           |
 
 The Signal integration is composed of three interconnected layers: the **Frontend Client Layer**, the **Laravel Backend Integration**, and the **Signal Service Engine**.
 
+```mermaid
+flowchart TD
+    subgraph Frontend ["1. Frontend Client Layer (signal.js)"]
+        UI["Client Browser UI"]
+        SM["SignalManager Singleton"]
+        UI <--> SM
+    end
+
+    subgraph Laravel ["2. Laravel Backend Layer"]
+        TicketRoute["/api/signal-ticket<br/>(HMAC Ticket Issuer)"]
+        AppLogic["Laravel App Action<br/>(Controller / Job)"]
+        SignalSvc["SignalService Wrapper"]
+        AppLogic --> SignalSvc
+    end
+
+    subgraph SignalEngine ["3. Signal Service (signal-service-api)"]
+        WSGateway["WebSocket Gateway<br/>/notifications"]
+        HmacGuard["HmacAuthGuard API<br/>POST /notifications/emit"]
+        RelayEngine["Room & Broadcaster Engine"]
+        WSGateway <--> RelayEngine
+        HmacGuard --> RelayEngine
+    end
+
+    SM -->|1. GET /api/signal-ticket| TicketRoute
+    TicketRoute -->|2. Return Signed Ticket| SM
+    SM -->|3. Connect WebSocket (Ticket Auth)| WSGateway
+    SM -->|4. Emit join_room| WSGateway
+    SignalSvc -->|5. HTTP POST (HMAC Signed)| HmacGuard
+    RelayEngine -->|6. Real-Time Push| SM
+    SM -->|7. UI Updates / Toasts / Badges| UI
 ```
-+---------------------------------------------------------------------------------------------------+
-|                                      SIGNAL ECOSYSTEM ARCHITECTURE                                |
-+---------------------------------------------------------------------------------------------------+
-|                                                                                                   |
-|  [ 1. FRONTEND CLIENT LAYER (signal.js) ]                                                         |
-|    - Initiates connection via ticket auth                                                         |
-|    - Joins project, app, user, and custom component rooms                                         |
-|    - Listens for events: term_promoting, notifications, custom channel broadcasts                 |
-|                                                                                                   |
-|         ^ (1) GET /api/signal-ticket                 | (3) WebSocket Connect (${SOCKET_URL})       |
-|         |     Fetch Signed Ticket                    |     Pass ticket in handshake auth          |
-|         |                                            | (5) Emit "join_room" for target channels   |
-|         |                                            v                                            |
-|                                                                                                   |
-|  [ 2. LARAVEL BACKEND LAYER ]                        [ 3. SIGNAL SERVICE (signal-service-api) ]   |
-|    - config/signal.php (URL, Project ID, Secret)       - /notifications Gateway Namespace         |
-|    - /api/signal-ticket (HMAC Ticket Issuer)           - Ticket Handshake Verification            |
-|    - App\Services\SignalService                        - Room Management & Client Tracking        |
-|        ├── taskEmit()                                  - HmacAuthGuard API Security               |
-|        ├── eventEmit()                                 - WebSocket Broadcaster & Relay Engine     |
-|        └── post('emit')                                      ^                                    |
-|              |                                               |                                    |
-|              +----- (7) HTTP POST /notifications/emit -------+                                    |
-|                     Headers: x-project-id, x-timestamp, x-signature (HMAC Signed)                 |
-+---------------------------------------------------------------------------------------------------+
-```
+
 
 ### 2.1 Component Breakdown
 

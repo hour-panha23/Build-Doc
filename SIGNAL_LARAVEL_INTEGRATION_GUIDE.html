@@ -396,6 +396,39 @@
       box-shadow: 0 0 14px rgba(99, 102, 241, 0.5);
     }
 
+    /* Mermaid Diagram Card */
+    .mermaid-card {
+      background: #090e1a;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 28px 20px;
+      margin: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .mermaid-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+    }
+
+    .mermaid {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       aside.sidebar {
@@ -407,6 +440,37 @@
       }
     }
   </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      themeVariables: {
+        darkMode: true,
+        background: '#090e1a',
+        mainBkg: '#131b2e',
+        primaryColor: '#6366f1',
+        primaryTextColor: '#f8fafc',
+        primaryBorderColor: '#6366f1',
+        lineColor: '#38bdf8',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        noteBkgColor: '#111c35',
+        noteTextColor: '#38bdf8',
+        noteBorderColor: '#38bdf8',
+        actorBkg: '#131b2e',
+        actorBorder: '#6366f1',
+        actorTextColor: '#f8fafc',
+        signalColor: '#38bdf8',
+        signalTextColor: '#e2e8f0',
+        labelBoxBkgColor: '#131b2e',
+        labelBoxBorderColor: '#38bdf8',
+        labelTextColor: '#f8fafc',
+        loopTextColor: '#e2e8f0'
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -445,71 +509,39 @@
 
       <h3>Architecture &amp; Lifecycle Flow</h3>
       <p>The architecture operates in two distinct, sequential phases: <strong>Client Connection &amp; Room Subscription</strong>, followed by <strong>Backend Event Emission &amp; Real-Time Relay</strong>.</p>
-      <div class="code-container">
-        <div class="code-header">
-          <span>Complete 2-Phase Lifecycle Flow</span>
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <pre><code>===================================================================================================
-PHASE 1: CLIENT CONNECTION &amp; ROOM SUBSCRIPTION
-===================================================================================================
 
-[ Frontend Client (signal.js) ]
-       |
-       |  1. GET /api/signal-ticket (Auth Session)
-       v
-[ Laravel Backend ] ----------------------------------------+
-       |                                                    |
-       |  2. Generates &amp; signs ticket with SIGNAL_SECRET    |
-       v                                                    |
-[ Return Signed Ticket ]                                    |
-  { appId, timestamp, projectId, userId, signature }         |
-       |                                                    |
-       |  3. Connect WebSocket (${SOCKET_URL}/notifications)|
-       |     Send ticket in handshake auth: { ... }         |
-       v                                                    |
-[ Signal Service (signal-service-api) ]                     |
-       |                                                    |
-       |  4. Verifies HMAC ticket signature                 |
-       |     Connection accepted!                           |
-       v                                                    |
-[ Frontend Client ]                                         |
-       |                                                    |
-       |  5. Emits "join_room" for target rooms             |
-       v     (project, app, user &amp; custom channels)         |
-[ Subscribed to Rooms in Signal ]                           |
-                                                            |
-============================================================|======================================
-PHASE 2: BACKEND EVENT EMISSION &amp; REAL-TIME RELAY           |
-============================================================|======================================
-                                                            |
-[ Laravel Application Action ]                              |
-  (Controller, Job, Observer, Service)                      |
-       |                                                    |
-       |  6. Call SignalService::taskEmit(...) or           |
-       |          SignalService::eventEmit(...)             |
-       v                                                    |
-[ SignalService::post('emit', $data) ] &lt;--------------------+
-       |
-       |  7. Automatically computes HMAC signature:
-       |     sign($timestamp, $rawBody)
-       |     Attaches headers: x-project-id, x-timestamp, x-signature
-       |
-       |  8. HTTP POST /notifications/emit
-       v
-[ Signal Service (signal-service-api) ]
-       |
-       |  9. HmacAuthGuard verifies request signature
-       |  10. Routes message by target precedence (user, room, app, project)
-       |      Handles self_emit &amp; sender exclusion via sender_socket_id
-       v
-[ Broadcast over WebSockets ]
-       |
-       |  11. Real-time event delivered to room subscribers
-       v
-[ Frontend Client (signal.js) ]
-       |
-       |  12. Triggers listeners: UI updates, progress bars, notification badges!</code></pre>
+      <div class="mermaid-card">
+        <div class="mermaid-title">&bull; End-to-End Sequence Diagram (Mermaid)</div>
+        <div class="mermaid">
+sequenceDiagram
+    autonumber
+    box rgba(99, 102, 241, 0.12) Frontend
+    participant Client as Frontend Client<br/>(signal.js)
+    end
+    box rgba(56, 189, 248, 0.12) Laravel Backend
+    participant Laravel as Laravel Backend<br/>(API & Services)
+    end
+    box rgba(16, 185, 129, 0.12) Signal Gateway
+    participant Signal as Signal Service<br/>(signal-service-api)
+    end
+
+    Note over Client,Signal: PHASE 1: Client Connection & Room Subscription
+    Client->>Laravel: 1. GET /api/signal-ticket (Auth Session)
+    Laravel-->>Client: 2. Return Signed Ticket (appId, timestamp, projectId, userId, signature)
+    Client->>Signal: 3. Connect WebSocket (${SOCKET_URL}/notifications) with Ticket in auth
+    Signal->>Signal: 4. Verify HMAC signature & clock freshness (&le; 60s)
+    Signal-->>Client: Connection Accepted (Socket ID assigned)
+    Client->>Signal: 5. Emit "join_room" (Project, App, User & Custom Channels)
+
+    Note over Client,Signal: PHASE 2: Backend Event Emission & Real-Time Relay
+    Laravel->>Laravel: 6. Application Action triggers taskEmit() or eventEmit()
+    Laravel->>Laravel: 7. Automatically sign payload: sign($timestamp, $rawBody)
+    Laravel->>Signal: 8. HTTP POST /notifications/emit (Headers: x-project-id, x-timestamp, x-signature)
+    Signal->>Signal: 9. HmacAuthGuard validates request signature
+    Signal->>Signal: 10. Resolve recipient rooms & apply sender exclusion (self_emit)
+    Signal-->>Client: 11. Push Event over WebSocket to Room Subscribers
+    Client->>Client: 12. Trigger Listener Callback (UI update, progress toast, badge counter)
+        </div>
       </div>
 
       <h3>Key Capabilities</h3>
@@ -532,37 +564,48 @@ PHASE 2: BACKEND EVENT EMISSION &amp; REAL-TIME RELAY           |
       <h2>2. Detailed Structure of Signal Integration</h2>
       <p>The Signal integration is composed of three interconnected layers: the <strong>Frontend Client Layer</strong>, the <strong>Laravel Backend Integration</strong>, and the <strong>Signal Service Engine</strong>.</p>
 
-      <div class="code-container">
-        <div class="code-header">
-          <span>Signal Ecosystem Architecture</span>
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <div class="mermaid-card">
+        <div class="mermaid-title">&bull; Component Ecosystem Topology (Mermaid)</div>
+        <div class="mermaid">
+flowchart TD
+    subgraph Frontend ["1. Frontend Client Layer (signal.js)"]
+        UI["Client Browser UI"]
+        SM["SignalManager Singleton"]
+        UI <--> SM
+    end
+
+    subgraph Laravel ["2. Laravel Backend Layer"]
+        TicketRoute["/api/signal-ticket<br/>(HMAC Ticket Issuer)"]
+        AppLogic["Laravel App Action<br/>(Controller / Job)"]
+        SignalSvc["SignalService Wrapper"]
+        AppLogic --> SignalSvc
+    end
+
+    subgraph SignalEngine ["3. Signal Service (signal-service-api)"]
+        WSGateway["WebSocket Gateway<br/>/notifications"]
+        HmacGuard["HmacAuthGuard API<br/>POST /notifications/emit"]
+        RelayEngine["Room & Broadcaster Engine"]
+        WSGateway <--> RelayEngine
+        HmacGuard --> RelayEngine
+    end
+
+    SM -->|1. GET /api/signal-ticket| TicketRoute
+    TicketRoute -->|2. Return Signed Ticket| SM
+    SM -->|3. Connect WebSocket (Ticket Auth)| WSGateway
+    SM -->|4. Emit join_room| WSGateway
+    SignalSvc -->|5. HTTP POST (HMAC Signed)| HmacGuard
+    RelayEngine -->|6. Real-Time Push| SM
+    SM -->|7. UI Updates / Toasts / Badges| UI
+
+    classDef fStyle fill:#111b2e,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+    classDef lStyle fill:#111b2e,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef sStyle fill:#111b2e,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    class Frontend fStyle;
+    class Laravel lStyle;
+    class SignalEngine sStyle;
         </div>
-        <pre><code>+---------------------------------------------------------------------------------------------------+
-|                                      SIGNAL ECOSYSTEM ARCHITECTURE                                |
-+---------------------------------------------------------------------------------------------------+
-|                                                                                                   |
-|  [ 1. FRONTEND CLIENT LAYER (signal.js) ]                                                         |
-|    - Initiates connection via ticket auth                                                         |
-|    - Joins project, app, user, and custom component rooms                                         |
-|    - Listens for events: term_promoting, notifications, custom channel broadcasts                 |
-|                                                                                                   |
-|         ^ (1) GET /api/signal-ticket                 | (3) WebSocket Connect (${SOCKET_URL})       |
-|         |     Fetch Signed Ticket                    |     Pass ticket in handshake auth          |
-|         |                                            | (5) Emit "join_room" for target channels   |
-|         |                                            v                                            |
-|                                                                                                   |
-|  [ 2. LARAVEL BACKEND LAYER ]                        [ 3. SIGNAL SERVICE (signal-service-api) ]   |
-|    - config/signal.php (URL, Project ID, Secret)       - /notifications Gateway Namespace         |
-|    - /api/signal-ticket (HMAC Ticket Issuer)           - Ticket Handshake Verification            |
-|    - App\Services\SignalService                        - Room Management &amp; Client Tracking        |
-|        ├── taskEmit()                                  - HmacAuthGuard API Security               |
-|        ├── eventEmit()                                 - WebSocket Broadcaster &amp; Relay Engine     |
-|        └── post('emit')                                      ^                                    |
-|              |                                               |                                    |
-|              +----- (7) HTTP POST /notifications/emit -------+                                    |
-|                     Headers: x-project-id, x-timestamp, x-signature (HMAC Signed)                 |
-+---------------------------------------------------------------------------------------------------+</code></pre>
       </div>
+
 
 
       <h3>2.1 Component Breakdown</h3>
