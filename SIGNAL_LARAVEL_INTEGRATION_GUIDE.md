@@ -755,182 +755,27 @@ async function startTermPromotion() {
 }
 ```
 
----
+## 5. Hardware Device Scan Integration (Separate Guide)
 
-## 5. Hardware Device Scan & Real-Time Attendance Integration
+For biometric, RFID, and facial recognition terminal integration (e.g. AiFace hardware devices), access verification workflows, and kiosk attendance monitors, please refer to the dedicated guide:
 
-The Signal Service contains a specialized **`HardwareGateway`** designed to interface directly with biometric, RFID, and facial recognition terminals (e.g. AiFace devices). It validates access permissions with Laravel in real time and broadcasts live scan events to frontend attendance monitors.
-
-### 5.1 End-to-End Scan Architecture
-
-```
-+---------------------------+
-| Biometric / RFID Terminal |
-|    (Hardware Device)      |
-+---------------------------+
-              |
-              | 1. Scan Record via Raw WebSocket (Port 8088 /pub/chat)
-              v
-+-----------------------------------------------------------------------+
-| SIGNAL HARDWARE GATEWAY (signal-service-api)                          |
-|   - Deduplication (Redis 3s window)                                   |
-|   - Lookup Device Route: DeviceService.getProjectForDevice(sn)        |
-|     -> { projectId, appId, roomId, event }                            |
-+-----------------------------------------------------------------------+
-              |                                        ^
-              | 2. Check Permission (If Cache Miss)   | 3. Access Decision
-              v                                        |    { access: 1/0 }
-+-----------------------------------------------------------------------+
-| LARAVEL BACKEND (routes/api.php)                                      |
-|   POST /api/student/attendance/access-scan                            |
-|   Headers: X-Internal-Secret                                          |
-|   - Validates student enrollment & attendance schedule                |
-+-----------------------------------------------------------------------+
-              |
-              | 4. Broadcast Real-Time Scan Event to Room
-              v
-+-----------------------------------------------------------------------+
-| FRONTEND ATTENDANCE CLIENT (signal.js & ScanAttendanceComponent.js)   |
-|   - Subscribes via /api/scan-attendance-signal-ticket                 |
-|   - Renders instant avatar, check-in sound & status badge             |
-+-----------------------------------------------------------------------+
-```
-
----
-
-### 5.2 Laravel Backend: Access Verification Endpoint (`routes/api.php`)
-
-When a user scans at a terminal, `signal-service-api` makes a direct HTTP POST request to Laravel to verify if the user has access.
-
-#### 1. Route Definition
-```php
-use App\Http\Controllers\StudentAttendanceController;
-
-Route::post('/student/attendance/access-scan', [StudentAttendanceController::class, 'checkAccessScan']);
-```
-
-#### 2. Request Contract (Signal $\rightarrow$ Laravel)
-- **Method**: `POST`
-- **Headers**:
-  - `Content-Type: application/json`
-  - `X-Internal-Secret: {INTERNAL_API_SECRET}`
-- **Payload**:
-```json
-{
-  "current_date": "2026-09-14",
-  "present_time": "08:30",
-  "user_id": "1052",
-  "user_name": "Sokha Chan"
-}
-```
-
-#### 3. Response Contract (Laravel $\rightarrow$ Signal)
-Laravel must return `status_code: 200` with the `access` flag (`1` for allowed, `0` for denied) and an optional `reason`:
-
-```json
-{
-  "status_code": 200,
-  "data": {
-    "access": 1,
-    "reason": "On-Time Check-In"
-  }
-}
-```
-*(If denied, return `"access": 0` and `"reason": "Access Denied: Unenrolled or Suspended"`).*
-
----
-
-### 5.3 Dedicated Scan Ticket Route (`routes/api.php`)
-
-Attendance display screens or kiosk terminals that run without full user sessions use a dedicated scan ticket endpoint:
-
-```php
-Route::get('/scan-attendance-signal-ticket', function (Request $request) {
-    // Dedicated app ID for attendance scanners / display boards
-    $appId     = '8AE496F4C88EB47721B5B202EBDBC546';
-    $secret    = config('signal.signal_secret');
-    $timestamp = (string) time();
-    $projectId = config('signal.signal_project_id');
-    $userId    = '1'; // System / Kiosk User
-
-    $signature = hash_hmac(
-        'sha256',
-        "{$appId}.{$timestamp}.{$projectId}.{$userId}",
-        $secret
-    );
-
-    return response()->json(compact('appId', 'timestamp', 'projectId', 'userId', 'signature'));
-});
-```
-
----
-
-### 5.4 Real-Time Broadcast Payload to Frontend
-
-Once access is evaluated, Signal broadcasts the scan event to the mapped attendance room:
-
-- **Target Room**: `project:{projectId}:app:{appId}:room:{roomId}`
-- **Event Name**: As configured for the device (e.g. `student_scanned` or `scan_attendance`)
-- **Broadcast Payload**:
-```json
-{
-  "user_id": "1052",
-  "user_name": "Sokha Chan",
-  "device_sn": "AF8923019283",
-  "status": "CHECK_IN",
-  "reason": "On-Time Check-In",
-  "verify_mode": 1,
-  "current_date": "2026-09-14",
-  "present_time": "08:30:15"
-}
-```
-> **Status Values**:
-> - `CHECK_IN`: Successfully verified check-in.
-> - `CHECK_OUT`: Successfully verified check-out (`record.inout === 1`).
-> - `ACCESS_DENIED`: Student not found or permission revoked by Laravel.
-
----
-
-### 5.5 Frontend Client Usage (`ScanAttendanceComponent.js`)
-
-On attendance display screens or kiosks, initialize Signal with `isScan = true` so it fetches the kiosk ticket from `/api/scan-attendance-signal-ticket`:
-
-```javascript
-// ScanAttendanceComponent.js
-async function initAttendanceMonitor(roomName) {
-    // 1. Initialize Signal with isScan = true
-    await window.Signal.init([roomName], ["student_scanned"], true);
-
-    // 2. Listen for incoming hardware scans
-    window.Signal.addListener("student_scanned", roomName, (scanData) => {
-        console.log("New scan received from terminal:", scanData);
-
-        if (scanData.status === "CHECK_IN") {
-            showSuccessCard(scanData.user_name, scanData.present_time);
-            playSuccessChime();
-        } else if (scanData.status === "ACCESS_DENIED") {
-            showDeniedAlert(scanData.user_name, scanData.reason);
-            playDeniedBuzzer();
-        }
-    });
-}
-```
+👉 **[Signal Device Scan & Attendance Integration Guide](SIGNAL_DEVICE_SCAN_INTEGRATION_GUIDE.md)**
 
 ---
 
 ## 6. Summary Checklist for Developers
 
 - [ ] **1. `.env` Setup**: Configure `SIGNAL_URL`, `SIGNAL_PROJECT_ID`, and `SIGNAL_SECRET`.
-- [ ] **2. NTP Clock Sync**: Ensure server clocks are synchronized within 60 seconds of real time.
+- [ ] **2. NTP Clock Sync**: Ensure server clocks are synchronized within 60 seconds of real time (`MAX_CLOCK_SKEW_SECONDS = 60`).
 - [ ] **3. Service Class**: Place `SignalService.php` in `app/Services/`.
-- [ ] **4. API Routes**: Add `/api/signal-ticket` and `/api/scan-attendance-signal-ticket` in `routes/api.php`.
+- [ ] **4. API Route**: Add `/api/signal-ticket` in `routes/api.php`.
 - [ ] **5. Script Bundling**: Ensure `signal.js` is the **last** file in your component bundle (`script_bundles.php`).
 - [ ] **6. Client Init**: Call `window.Signal.init(...)` inside `DOMContentLoaded` in `main.js`.
-- [ ] **7. Emission Pattern**:
+- [ ] **7. Emission Patterns**:
   - Use `SignalService::taskEmit(...)` for long-running processes (with Cache throttling).
   - Use `SignalService::eventEmit(...)` with `type: 'notify'` for badges/unread counts.
   - Use `SignalService::eventEmit(...)` with `type: 'realtime'` for immediate UI state refresh.
-- [ ] **8. Device Scanning**: Implement `POST /api/student/attendance/access-scan` in Laravel if integrating biometric hardware terminals.
+
 
 
 
