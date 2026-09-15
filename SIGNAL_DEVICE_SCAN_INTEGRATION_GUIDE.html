@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Service - Hardware Device Scan & Attendance Integration Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-code: #070b13;
+      --border-color: #1f293d;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --primary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 290px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.68;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside.sidebar {
+      width: var(--sidebar-width);
+      background: #090d16;
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #f59e0b, #38bdf8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    nav.toc {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    nav.toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    nav.toc a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    nav.toc a.active {
+      color: #38bdf8;
+      background: var(--accent-glow);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding-top: 18px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 20px;
+    }
+
+    .nav-external-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #111b33;
+      border: 1px solid #1f2f54;
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #38bdf8;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .nav-external-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+    }
+
+    /* Main Container */
+    main.content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 1080px;
+      padding: 48px 56px 96px;
+    }
+
+    header.doc-header {
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    section {
+      margin-bottom: 64px;
+      scroll-margin-top: 40px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 28px 0 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: #cbd5e1;
+      font-size: 14.5px;
+    }
+
+    ul, ol {
+      margin: 0 0 18px 24px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #131b2e;
+      color: #38bdf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    /* Code Block Containers */
+    .code-container {
+      background: var(--bg-code);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin: 18px 0 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #0d1322;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .copy-btn.copied {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--success);
+      color: #a7f3d0;
+    }
+
+    pre {
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #f1f5f9;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 18px 0;
+      font-size: 13.5px;
+      line-height: 1.55;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .alert-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .alert-info {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #bae6fd;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fde68a;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 13.5px;
+      background: #0d1424;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    th {
+      background: #111a30;
+      color: #f8fafc;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.6px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Architecture Visual Pipeline */
+    .pipeline-wrapper {
+      margin: 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .process-card {
+      background: #0d1527;
+      border: 1px solid #1e2c4f;
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    .process-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(56, 189, 248, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .actor-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .actor-hw { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .actor-sg { background: rgba(56, 189, 248, 0.2); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .actor-rd { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .actor-be { background: rgba(99, 102, 241, 0.2); color: #c7d2fe; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .actor-fe { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .code-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: #070b13;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: #38bdf8;
+      word-break: break-all;
+    }
+
+    .flow-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+      text-transform: uppercase;
+    }
+    .badge-hit { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-miss { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      aside.sidebar {
+        display: none;
+      }
+      main.content {
+        margin-left: 0;
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge">📟</div>
+      <div>
+        <div class="brand-title">Signal Service</div>
+        <div class="brand-sub">Device Scan Guide</div>
+      </div>
+    </div>
+    <nav class="toc">
+      <a href="#architecture" class="active">1. Architecture & Workflow</a>
+      <a href="#verification-api">2. Laravel Verification API</a>
+      <a href="#kiosk-ticket">3. Kiosk Ticket Route</a>
+      <a href="#payload-contract">4. Real-Time Broadcast</a>
+      <a href="#frontend-integration">5. Frontend Client</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="SIGNAL_LARAVEL_INTEGRATION_GUIDE.html" class="nav-external-btn">
+        <span>&larr; Main Laravel Guide</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+    <header class="doc-header">
+      <span class="tag">Hardware Integration &amp; Attendance</span>
+      <h1>Signal Service - Hardware Device Scan &amp; Attendance Guide</h1>
+      <p class="lead">Complete integration manual for biometric terminals (fingerprint, facial recognition, RFID), raw WebSocket ingestion (:8088), Redis route lookup, user cache fallback, and instant real-time attendance monitor kiosks.</p>
+    </header>
+
+    <!-- SECTION 1 -->
+    <section id="architecture">
+      <h2>1. Architecture &amp; Workflow Overview</h2>
+      <p>The hardware integration operates via the dedicated <strong><code>HardwareGateway</code></strong> in <code>signal-service-api</code> (listening on raw WebSocket port <code>8088</code>, path <code>/pub/chat</code>). It coordinates concurrently between physical terminals, Redis routing/user cache, the Laravel backend, and frontend display monitors.</p>
+
+      <!-- Visual Step Pipeline -->
+      <div class="pipeline-wrapper">
+
+        <!-- STEP 1 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">1</span>
+              <span class="actor-pill actor-hw">Hardware Terminal</span>
+            </div>
+            <div class="card-title">Terminal Connection &amp; Standby</div>
+            <div class="card-desc">The hardware device connects first to Signal Service via raw WebSocket on port 8088. Signal holds the connection open and the terminal waits in standby for user scans.</div>
+          </div>
+          <div class="code-chip">ws://signal-server:8088/pub/chat</div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">2</span>
+              <span class="actor-pill actor-hw">Hardware Terminal</span>
+            </div>
+            <div class="card-title">User Physical Scan &amp; Log Transmission</div>
+            <div class="card-desc">A user scans (face, fingerprint, or RFID). The device packages the scan record into a JSON packet and sends it over the open WebSocket.</div>
+          </div>
+          <div class="code-chip">{ cmd: "sendlog", sn: "AF8923019283", record: { user_id: "1052", verify_mode: 1, ... } }</div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">3</span>
+              <span class="actor-pill actor-rd">Redis Cache</span>
+            </div>
+            <div class="card-title">Route Lookup (Determine Target Room &amp; Event)</div>
+            <div class="card-desc">Signal queries Redis for the device route configuration by serial number (<code>sn</code>) to resolve target metadata: project, application, destination room, and event name.</div>
+          </div>
+          <div class="code-chip">Redis GET device:route:{sn} &rarr; { projectId, appId, roomId, event }</div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">4</span>
+              <span class="actor-pill actor-be">Laravel &bull; Redis</span>
+            </div>
+            <div class="card-title">Scanned User Data Lookup &amp; Cache Fallback</div>
+            <div class="card-desc">
+              Signal checks Redis cache for the scanned user's profile and access status:<br>
+              &bull; <span class="flow-badge badge-hit">Cache Hit</span> Instantly returns cached student/employee details.<br>
+              &bull; <span class="flow-badge badge-miss">Cache Miss</span> Calls Laravel <code>POST /api/student/attendance/access-scan</code> to fetch details and access verification, then stores in Redis.
+            </div>
+          </div>
+          <div class="code-chip">Redis: device:user:{sn}:{userId} &bull; Fallback: POST /api/student/attendance/access-scan</div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">5</span>
+              <span class="actor-pill actor-sg">Signal Gateway</span>
+            </div>
+            <div class="card-title">Device Acknowledgment</div>
+            <div class="card-desc">Signal immediately sends an acknowledgment response back to the hardware device socket with the verification status (<code>access: 1/0</code>) to trigger the green chime or red buzzer.</div>
+          </div>
+          <div class="code-chip">{ cmd: "sendlog", ret: "sendlog", result: true, access: 1 }</div>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="process-card">
+          <div>
+            <div class="card-top">
+              <span class="step-number">6</span>
+              <span class="actor-pill actor-fe">Frontend Monitor</span>
+            </div>
+            <div class="card-title">Real-Time Room Broadcast</div>
+            <div class="card-desc">Signal pushes the event payload to the target room subscribers (<code>project:{projectId}:app:{appId}:room:{roomId}</code>). Connected kiosks update the UI immediately with student photo, name, and timestamp.</div>
+          </div>
+          <div class="code-chip">socket.to("project:PROJECT_ID:app:APP_ID:room:ROOM_ID").emit("student_scanned", scanData)</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="verification-api">
+      <h2>2. Laravel Backend Verification API</h2>
+      <p>When user details are not found in the Redis cache, <code>signal-service-api</code> makes a direct HTTP POST request to the Laravel backend to retrieve user data and verify access permissions.</p>
+
+      <h3>2.1 Route Definition (<code>routes/api.php</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>use App\Http\Controllers\StudentAttendanceController;
+
+Route::post('/student/attendance/access-scan', [StudentAttendanceController::class, 'checkAccessScan']);</code></pre>
+      </div>
+
+      <h3>2.2 Request Contract (Signal &rarr; Laravel)</h3>
+      <ul>
+        <li><strong>Method</strong>: <code>POST</code></li>
+        <li><strong>Endpoint</strong>: <code>/api/student/attendance/access-scan</code></li>
+        <li><strong>Headers</strong>:
+          <ul>
+            <li><code>Content-Type: application/json</code></li>
+            <li><code>X-Internal-Secret: {INTERNAL_API_SECRET}</code></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>JSON (Request Payload)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>{
+  "current_date": "2026-09-14",
+  "present_time": "08:30",
+  "user_id": "1052",
+  "user_name": "Sokha Chan"
+}</code></pre>
+      </div>
+
+      <h3>2.3 Response Contract (Laravel &rarr; Signal)</h3>
+      <p>Laravel must return HTTP 200 with an <code>access</code> flag (<code>1</code> for allowed, <code>0</code> for denied) and an optional <code>reason</code>:</p>
+
+      <h4>Approved Check-In Response:</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JSON</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>{
+  "status_code": 200,
+  "data": {
+    "access": 1,
+    "reason": "On-Time Check-In"
+  }
+}</code></pre>
+      </div>
+
+      <h4>Denied Access Response:</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JSON</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>{
+  "status_code": 200,
+  "data": {
+    "access": 0,
+    "reason": "Access Denied: Unenrolled or Suspended"
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="kiosk-ticket">
+      <h2>3. Dedicated Kiosk Scan Ticket Route</h2>
+      <p>Walk-through gate screens or attendance display boards operating in kiosk mode authenticate using a dedicated scan ticket endpoint without requiring user session logins:</p>
+
+      <h3>3.1 Route Definition (<code>routes/api.php</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/scan-attendance-signal-ticket', function (Request $request) {
+    // Dedicated App ID assigned for attendance display kiosks
+    $appId     = '8AE496F4C88EB47721B5B202EBDBC546';
+    $secret    = config('signal.signal_secret');
+    $timestamp = (string) time();
+    $projectId = config('signal.signal_project_id');
+    $userId    = '1'; // Dedicated Kiosk / System User ID
+
+    $signature = hash_hmac(
+        'sha256',
+        "{$appId}.{$timestamp}.{$projectId}.{$userId}",
+        $secret
+    );
+
+    return response()->json(compact('appId', 'timestamp', 'projectId', 'userId', 'signature'));
+});</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="payload-contract">
+      <h2>4. Signal Broadcast Payload to Frontend</h2>
+      <p>Once the scan is evaluated, Signal broadcasts the real-time event to the mapped attendance room:</p>
+      <ul>
+        <li><strong>Target Room</strong>: <code>project:{projectId}:app:{appId}:room:{roomId}</code></li>
+        <li><strong>Event Name</strong>: As configured in device routing (e.g. <code>student_scanned</code>)</li>
+      </ul>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>JSON (Broadcast Event Payload)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>{
+  "user_id": "1052",
+  "user_name": "Sokha Chan",
+  "device_sn": "AF8923019283",
+  "status": "CHECK_IN",
+  "reason": "On-Time Check-In",
+  "verify_mode": 1,
+  "current_date": "2026-09-14",
+  "present_time": "08:30:15"
+}</code></pre>
+      </div>
+
+      <h3>Status Reference</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Status Value</th>
+            <th>Meaning</th>
+            <th>Recommended Action on Frontend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CHECK_IN</code></td>
+            <td>Verified entry scan</td>
+            <td>Display green student check card, play success chime</td>
+          </tr>
+          <tr>
+            <td><code>CHECK_OUT</code></td>
+            <td>Verified exit scan (<code>record.inout === 1</code>)</td>
+            <td>Display blue departure confirmation</td>
+          </tr>
+          <tr>
+            <td><code>ACCESS_DENIED</code></td>
+            <td>Permission denied or lookup failed</td>
+            <td>Display red alert card with rejection reason, play error buzzer</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="frontend-integration">
+      <h2>5. Frontend Client Implementation</h2>
+
+      <h3>5.1 Script Bundling (<code>config/script_bundles.php</code>)</h3>
+      <p>For attendance kiosk screens, configure the bundle in <code>script_bundles.php</code>.</p>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Loading Order Recommendation:</strong> <code>/js/signal.js</code> <strong>should be the last file</strong> in the bundle. This ensures that all UI dialogs, date helpers, and attendance components (<code>ScanAttendanceComponent.js</code>) are fully loaded and defined before <code>signal.js</code> initializes and binds socket listeners.
+        </div>
+      </div>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (config/script_bundles.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// config/script_bundles.php
+'attendance-script' => [
+    'attr'        => 'defer',
+    'single_file' => 1,
+    'output_file' => '/dist/js/attendance.js',
+    'files'       => [
+        'https://cdn.socket.io/4.8.1/socket.io.min.js',
+        '/assets/js/sweetalert2.all.min.js',
+        'https://cdn.vectoraclouds.com/vsel/components/quicktoast/QuickToast.js',
+        'https://cdn.vectoraclouds.com/vsel/utils/DateHelper.js',
+        'https://cdn.vectoraclouds.com/vsel/components/date_time_picker/DateTimePicker.js',
+        'https://cdn.vectoraclouds.com/vsel/utils/vsapi.js',
+        '/js/components/formal/ScanAttendanceComponent.js',
+        '/js/signal.js' // Should be at the last
+    ]
+]</code></pre>
+      </div>
+
+      <h3>5.2 Component Listener (<code>ScanAttendanceComponent.js</code>)</h3>
+      <p>Initialize Signal with <code>isScan = true</code>. This instructs <code>signal.js</code> to fetch kiosk credentials from <code>/api/scan-attendance-signal-ticket</code>:</p>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>JavaScript (ScanAttendanceComponent.js)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// ScanAttendanceComponent.js
+async function initAttendanceMonitor(roomName) {
+    // 1. Initialize Signal passing isScan = true
+    await window.Signal.init([roomName], ["student_scanned"], true);
+
+    // 2. Listen for incoming terminal scans
+    window.Signal.addListener("student_scanned", roomName, (scanData) => {
+        console.log("New scan received from terminal:", scanData);
+
+        if (scanData.status === "CHECK_IN") {
+            showSuccessCard({
+                name: scanData.user_name,
+                time: scanData.present_time,
+                device: scanData.device_sn
+            });
+            playSuccessChime();
+        } else if (scanData.status === "ACCESS_DENIED") {
+            showDeniedAlert({
+                name: scanData.user_name,
+                reason: scanData.reason
+            });
+            playDeniedBuzzer();
+        }
+    });
+}</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Click to copy functionality
+    function copyCode(btn) {
+      const container = btn.closest('.code-container');
+      const code = container.querySelector('pre code').innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    // Scrollspy navigation
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('nav.toc a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
