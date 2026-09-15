@@ -41,6 +41,26 @@ sequenceDiagram
     end
 ```
 
+### End-to-End Flow Summary Table
+
+#### ⚡ Phase 1: Client Connection & Room Subscription
+| Step | Actor | Action | Payload / Target | Description |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | Frontend | `GET /api/signal-ticket` | Laravel Session | Requests temporary signed authentication credentials |
+| **2** | Laravel | Return Signed Ticket | `{ appId, timestamp, projectId, userId, signature }` | Computes HMAC-SHA256 signature using `SIGNAL_SECRET` |
+| **3** | Frontend | Connect WebSocket | `io(url, { auth: ticket, transports: ['websocket'] })` | Establishes persistent connection to `/notifications` namespace |
+| **4** | Signal | Verify Signature | Gateway Verification | Validates HMAC signature & clock freshness ($\le$ 60s); joins user room |
+| **5** | Frontend | `socket.emit('join_room')` | Project, App, User & Custom Rooms | Subscribes socket to target broadcast channels |
+
+#### 📡 Phase 2: Backend Event Emission & Real-Time Relay
+| Step | Actor | Action | Endpoint / Protocol | Description |
+| :---: | :--- | :--- | :--- | :--- |
+| **6** | Laravel | Trigger Event | `SignalService::taskEmit()` or `eventEmit()` | Application initiates real-time progress or state change |
+| **7** | Laravel | HMAC Sign & HTTP POST | `POST /notifications/emit` | Attaches `x-project-id`, `x-timestamp`, `x-signature` headers |
+| **8** | Signal | `HmacAuthGuard` Verify | Guard Inspection | Validates timestamp ($\le$ 60s) and HMAC-SHA256 signature |
+| **9** | Signal | WebSocket Push | `server.to(room).emit(event, data)` | Broadcasts to subscribers (excluding originator if `self_emit: false`) |
+| **10** | Frontend | UI Re-render | `Signal.addListener(event, room, cb)` | Updates DOM tables, progress toasts, badges in real-time |
+
 ---
 
 ## 2. Detailed Structure of Signal Integration
@@ -52,7 +72,7 @@ flowchart TD
     subgraph Frontend ["1. Frontend Client Layer (signal.js)"]
         UI["Client Browser UI"]
         SM["SignalManager Singleton"]
-        UI <--> SM
+        UI --- SM
     end
 
     subgraph Laravel ["2. Laravel Backend Layer"]
@@ -66,7 +86,7 @@ flowchart TD
         WSGateway["WebSocket Gateway<br/>/notifications"]
         HmacGuard["HmacAuthGuard API<br/>POST /notifications/emit"]
         RelayEngine["Room & Broadcaster Engine"]
-        WSGateway <--> RelayEngine
+        WSGateway --- RelayEngine
         HmacGuard --> RelayEngine
     end
 

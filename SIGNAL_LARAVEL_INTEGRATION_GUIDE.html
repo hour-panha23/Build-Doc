@@ -396,38 +396,349 @@
       box-shadow: 0 0 14px rgba(99, 102, 241, 0.5);
     }
 
-    /* Mermaid Diagram Card */
-    .mermaid-card {
-      background: #090e1a;
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 28px 20px;
-      margin: 24px 0;
+    /* Visual Card Pipeline */
+    .pipeline-wrapper {
+      margin: 28px 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      overflow-x: auto;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      gap: 28px;
     }
 
-    .mermaid-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #94a3b8;
+    .phase-container {
+      background: #0d1527;
+      border: 1px solid #1e2c4f;
+      border-radius: 14px;
+      padding: 24px 22px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .phase-title-tag {
+      font-size: 13.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .phase-1-badge { color: #a5b4fc; }
+    .phase-2-badge { color: #6ee7b7; }
+
+    .phase-indicator {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .process-card {
+      background: #111b33;
+      border: 1px solid #1f2f54;
+      border-radius: 10px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .process-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .actor-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .actor-fe { background: rgba(99, 102, 241, 0.2); color: #c7d2fe; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .actor-be { background: rgba(56, 189, 248, 0.2); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .actor-sg { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .card-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .code-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: #080c16;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 8px;
+      border-radius: 6px;
+      color: #38bdf8;
+      word-break: break-all;
+    }
+
+    /* Architecture Topology */
+    .topology-card {
+      background: #0d1527;
+      border: 1px solid #1e2c4f;
+      border-radius: 14px;
+      padding: 26px 24px;
+      margin: 28px 0;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .topology-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .topology-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #38bdf8;
       display: flex;
       align-items: center;
       gap: 8px;
-      align-self: flex-start;
     }
 
-    .mermaid {
-      width: 100%;
-      display: flex;
-      justify-content: center;
+    .topology-tag {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.1);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.25);
     }
+
+    .topology-layers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .topology-layers {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .layer-box {
+      background: #111b33;
+      border-radius: 12px;
+      border: 1px solid #1f2f54;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .layer-box.layer-frontend { border-top: 4px solid #6366f1; }
+    .layer-box.layer-laravel { border-top: 4px solid #38bdf8; }
+    .layer-box.layer-signal { border-top: 4px solid #10b981; }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .layer-icon {
+      font-size: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .layer-frontend .layer-icon { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+    .layer-laravel .layer-icon { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+    .layer-signal .layer-icon { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+    .layer-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .layer-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .component-item {
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .component-item-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 3px;
+    }
+
+    .component-item-desc {
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    /* Pathways Flow */
+    .pathways-section {
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .pathways-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #cbd5e1;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pathway-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pathway-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+    }
+
+    .pathway-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .pathway-step {
+      font-size: 11px;
+      font-weight: 800;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .pathway-actors {
+      font-weight: 600;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pathway-arrow {
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .pathway-action {
+      color: #94a3b8;
+    }
+
+    .pathway-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .badge-get { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-post { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-ws { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-ui { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
 
     /* Responsive */
     @media (max-width: 900px) {
@@ -440,37 +751,6 @@
       }
     }
   </style>
-  <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
-      themeVariables: {
-        darkMode: true,
-        background: '#090e1a',
-        mainBkg: '#131b2e',
-        primaryColor: '#6366f1',
-        primaryTextColor: '#f8fafc',
-        primaryBorderColor: '#6366f1',
-        lineColor: '#38bdf8',
-        secondaryColor: '#1e293b',
-        tertiaryColor: '#0f172a',
-        noteBkgColor: '#111c35',
-        noteTextColor: '#38bdf8',
-        noteBorderColor: '#38bdf8',
-        actorBkg: '#131b2e',
-        actorBorder: '#6366f1',
-        actorTextColor: '#f8fafc',
-        signalColor: '#38bdf8',
-        signalTextColor: '#e2e8f0',
-        labelBoxBkgColor: '#131b2e',
-        labelBoxBorderColor: '#38bdf8',
-        labelTextColor: '#f8fafc',
-        loopTextColor: '#e2e8f0'
-      }
-    });
-  </script>
 </head>
 <body>
 
@@ -510,39 +790,155 @@
       <h3>Architecture &amp; Lifecycle Flow</h3>
       <p>The architecture operates in two distinct, sequential phases: <strong>Client Connection &amp; Room Subscription</strong>, followed by <strong>Backend Event Emission &amp; Real-Time Relay</strong>.</p>
 
-      <div class="mermaid-card">
-        <div class="mermaid-title">&bull; End-to-End Sequence Diagram (Mermaid)</div>
-        <div class="mermaid">
-sequenceDiagram
-    autonumber
-    box rgba(99, 102, 241, 0.12) Frontend
-    participant Client as Frontend Client<br/>(signal.js)
-    end
-    box rgba(56, 189, 248, 0.12) Laravel Backend
-    participant Laravel as Laravel Backend<br/>(API & Services)
-    end
-    box rgba(16, 185, 129, 0.12) Signal Gateway
-    participant Signal as Signal Service<br/>(signal-service-api)
-    end
+      <!-- Visual Step Cards -->
+      <div class="pipeline-wrapper">
 
-    Note over Client,Signal: PHASE 1: Client Connection & Room Subscription
-    Client->>Laravel: 1. GET /api/signal-ticket (Auth Session)
-    Laravel-->>Client: 2. Return Signed Ticket (appId, timestamp, projectId, userId, signature)
-    Client->>Signal: 3. Connect WebSocket (${SOCKET_URL}/notifications) with Ticket in auth
-    Signal->>Signal: 4. Verify HMAC signature & clock freshness (&le; 60s)
-    Signal-->>Client: Connection Accepted (Socket ID assigned)
-    Client->>Signal: 5. Emit "join_room" (Project, App, User & Custom Channels)
+        <!-- PHASE 1 -->
+        <div class="phase-container">
+          <div class="phase-header">
+            <div class="phase-title-tag phase-1-badge">
+              <span>⚡ Phase 1: Client Connection &amp; Room Subscription</span>
+            </div>
+            <span class="phase-indicator">Client Handshake &bull; Steps 1 &ndash; 5</span>
+          </div>
 
-    Note over Client,Signal: PHASE 2: Backend Event Emission & Real-Time Relay
-    Laravel->>Laravel: 6. Application Action triggers taskEmit() or eventEmit()
-    Laravel->>Laravel: 7. Automatically sign payload: sign($timestamp, $rawBody)
-    Laravel->>Signal: 8. HTTP POST /notifications/emit (Headers: x-project-id, x-timestamp, x-signature)
-    Signal->>Signal: 9. HmacAuthGuard validates request signature
-    Signal->>Signal: 10. Resolve recipient rooms & apply sender exclusion (self_emit)
-    Signal-->>Client: 11. Push Event over WebSocket to Room Subscribers
-    Client->>Client: 12. Trigger Listener Callback (UI update, progress toast, badge counter)
+          <div class="steps-grid">
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">1</span>
+                  <span class="actor-pill actor-fe">Frontend Client</span>
+                </div>
+                <div class="card-title">Request Auth Ticket</div>
+                <div class="card-desc">Client calls Laravel session route to obtain signed authentication credentials for WebSocket handshake.</div>
+              </div>
+              <div class="code-chip">GET /api/signal-ticket</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">2</span>
+                  <span class="actor-pill actor-be">Laravel Backend</span>
+                </div>
+                <div class="card-title">Generate Signed Ticket</div>
+                <div class="card-desc">Laravel computes HMAC-SHA256 signature using <code>SIGNAL_SECRET</code> and returns credentials JSON.</div>
+              </div>
+              <div class="code-chip">{ appId, timestamp, projectId, userId, signature }</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">3</span>
+                  <span class="actor-pill actor-fe">Frontend Client</span>
+                </div>
+                <div class="card-title">Connect WebSocket</div>
+                <div class="card-desc">Socket.io opens connection to <code>/notifications</code> namespace passing ticket credentials in auth object.</div>
+              </div>
+              <div class="code-chip">io(url, { transports: ['websocket'], auth: ticket })</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">4</span>
+                  <span class="actor-pill actor-sg">Signal Service</span>
+                </div>
+                <div class="card-title">Verify Credentials</div>
+                <div class="card-desc">Gateway verifies HMAC signature and clock skew (&le; 60s). Accepts socket and auto-joins user channel.</div>
+              </div>
+              <div class="code-chip">verifyUserHmacSignature(...) &rarr; OK</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">5</span>
+                  <span class="actor-pill actor-fe">Frontend Client</span>
+                </div>
+                <div class="card-title">Subscribe to Rooms</div>
+                <div class="card-desc">Client emits <code>join_room</code> for project, app, and custom channels (e.g. invoice or class rooms).</div>
+              </div>
+              <div class="code-chip">socket.emit('join_room', { projectId, roomId })</div>
+            </div>
+          </div>
         </div>
+
+        <!-- PHASE 2 -->
+        <div class="phase-container">
+          <div class="phase-header">
+            <div class="phase-title-tag phase-2-badge">
+              <span>📡 Phase 2: Backend Event Emission &amp; Real-Time Relay</span>
+            </div>
+            <span class="phase-indicator">Event Broadcasting &bull; Steps 6 &ndash; 10</span>
+          </div>
+
+          <div class="steps-grid">
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">6</span>
+                  <span class="actor-pill actor-be">Laravel Backend</span>
+                </div>
+                <div class="card-title">Trigger Event Action</div>
+                <div class="card-desc">Application code (Job, Controller) calls SignalService helper for progressive tasks or instant broadcasts.</div>
+              </div>
+              <div class="code-chip">SignalService::taskEmit() / eventEmit()</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">7</span>
+                  <span class="actor-pill actor-be">Laravel Backend</span>
+                </div>
+                <div class="card-title">HMAC Signed HTTP POST</div>
+                <div class="card-desc">Service signs request body with HMAC-SHA256 and sends HTTP POST with security headers.</div>
+              </div>
+              <div class="code-chip">Headers: x-project-id, x-timestamp, x-signature</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">8</span>
+                  <span class="actor-pill actor-sg">Signal Service</span>
+                </div>
+                <div class="card-title">HmacAuthGuard Validation</div>
+                <div class="card-desc">Signal API verifies request signature, checks project status, and passes payload to broadcaster.</div>
+              </div>
+              <div class="code-chip">POST /notifications/emit &rarr; Verified</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">9</span>
+                  <span class="actor-pill actor-sg">Signal Service</span>
+                </div>
+                <div class="card-title">WebSocket Broadcast</div>
+                <div class="card-desc">Resolves target rooms and pushes message over WebSockets (excluding initiator if <code>self_emit: false</code>).</div>
+              </div>
+              <div class="code-chip">server.to(room).except(senderSocketId).emit()</div>
+            </div>
+
+            <div class="process-card">
+              <div>
+                <div class="card-top">
+                  <span class="step-number">10</span>
+                  <span class="actor-pill actor-fe">Frontend Client</span>
+                </div>
+                <div class="card-title">Trigger UI Callback</div>
+                <div class="card-desc">Client listener receives event payload and instantly updates tables, progress bars, or notification badges.</div>
+              </div>
+              <div class="code-chip">window.Signal.addListener(event, room, callback)</div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
 
       <h3>Key Capabilities</h3>
       <ul>
@@ -564,45 +960,192 @@ sequenceDiagram
       <h2>2. Detailed Structure of Signal Integration</h2>
       <p>The Signal integration is composed of three interconnected layers: the <strong>Frontend Client Layer</strong>, the <strong>Laravel Backend Integration</strong>, and the <strong>Signal Service Engine</strong>.</p>
 
-      <div class="mermaid-card">
-        <div class="mermaid-title">&bull; Component Ecosystem Topology (Mermaid)</div>
-        <div class="mermaid">
-flowchart TD
-    subgraph Frontend ["1. Frontend Client Layer (signal.js)"]
-        UI["Client Browser UI"]
-        SM["SignalManager Singleton"]
-        UI <--> SM
-    end
+      <div class="topology-card">
+        <div class="topology-header">
+          <div class="topology-title">
+            <span>🏛️ Component Ecosystem Architecture</span>
+          </div>
+          <span class="topology-tag">3-Tier Distributed Topology</span>
+        </div>
 
-    subgraph Laravel ["2. Laravel Backend Layer"]
-        TicketRoute["/api/signal-ticket<br/>(HMAC Ticket Issuer)"]
-        AppLogic["Laravel App Action<br/>(Controller / Job)"]
-        SignalSvc["SignalService Wrapper"]
-        AppLogic --> SignalSvc
-    end
+        <!-- 3 Tier Columns -->
+        <div class="topology-layers">
+          <!-- Layer 1: Frontend -->
+          <div class="layer-box layer-frontend">
+            <div class="layer-header">
+              <div class="layer-icon">💻</div>
+              <div>
+                <div class="layer-title">1. Frontend Client Layer</div>
+                <div class="layer-sub">signal.js &bull; Browser Runtime</div>
+              </div>
+            </div>
 
-    subgraph SignalEngine ["3. Signal Service (signal-service-api)"]
-        WSGateway["WebSocket Gateway<br/>/notifications"]
-        HmacGuard["HmacAuthGuard API<br/>POST /notifications/emit"]
-        RelayEngine["Room & Broadcaster Engine"]
-        WSGateway <--> RelayEngine
-        HmacGuard --> RelayEngine
-    end
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>SignalManager Singleton</span>
+                <span class="actor-pill actor-fe">Global</span>
+              </div>
+              <div class="component-item-desc">Central controller on <code>window.Signal</code> managing socket lifecycle, auto-reconnect, and ticket auth.</div>
+            </div>
 
-    SM -->|1. GET /api/signal-ticket| TicketRoute
-    TicketRoute -->|2. Return Signed Ticket| SM
-    SM -->|3. Connect WebSocket (Ticket Auth)| WSGateway
-    SM -->|4. Emit join_room| WSGateway
-    SignalSvc -->|5. HTTP POST (HMAC Signed)| HmacGuard
-    RelayEngine -->|6. Real-Time Push| SM
-    SM -->|7. UI Updates / Toasts / Badges| UI
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>Room Subscription Dispatcher</span>
+                <span class="actor-pill actor-fe">Events</span>
+              </div>
+              <div class="component-item-desc">Emits <code>join_room</code> for project, app, user, and dynamic entity rooms (invoices, classes, jobs).</div>
+            </div>
 
-    classDef fStyle fill:#111b2e,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
-    classDef lStyle fill:#111b2e,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
-    classDef sStyle fill:#111b2e,stroke:#10b981,stroke-width:2px,color:#f8fafc;
-    class Frontend fStyle;
-    class Laravel lStyle;
-    class SignalEngine sStyle;
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>UI Event Listeners</span>
+                <span class="actor-pill actor-fe">Views</span>
+              </div>
+              <div class="component-item-desc">Directly updates tables, progress bars, badge counts, and triggers toast notifications.</div>
+            </div>
+          </div>
+
+          <!-- Layer 2: Laravel Backend -->
+          <div class="layer-box layer-laravel">
+            <div class="layer-header">
+              <div class="layer-icon">⚙️</div>
+              <div>
+                <div class="layer-title">2. Laravel Backend Layer</div>
+                <div class="layer-sub">SignalService.php &bull; PHP Core</div>
+              </div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>HMAC Ticket Issuer</span>
+                <span class="actor-pill actor-be">Auth</span>
+              </div>
+              <div class="component-item-desc">Session route <code>GET /api/signal-ticket</code> generates short-lived HMAC tickets for client handshakes.</div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>SignalService Wrapper</span>
+                <span class="actor-pill actor-be">Service</span>
+              </div>
+              <div class="component-item-desc">Encapsulates <code>taskEmit()</code> (with DB locks &amp; cache throttling) and <code>eventEmit()</code> (instant broadcasts).</div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>Application Controllers &amp; Jobs</span>
+                <span class="actor-pill actor-be">Logic</span>
+              </div>
+              <div class="component-item-desc">Triggers notifications upon database commits, queued worker steps, or external webhooks.</div>
+            </div>
+          </div>
+
+          <!-- Layer 3: Signal Service -->
+          <div class="layer-box layer-signal">
+            <div class="layer-header">
+              <div class="layer-icon">⚡</div>
+              <div>
+                <div class="layer-title">3. Signal Service Gateway</div>
+                <div class="layer-sub">signal-service-api &bull; NestJS</div>
+              </div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>WebSocket Gateway</span>
+                <span class="actor-pill actor-sg">Socket.io</span>
+              </div>
+              <div class="component-item-desc">Operates on <code>/notifications</code> namespace; manages persistent connections and heartbeat checks.</div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>HmacAuthGuard API</span>
+                <span class="actor-pill actor-sg">Security</span>
+              </div>
+              <div class="component-item-desc">Verifies incoming backend <code>POST /notifications/emit</code> requests via SHA256 header signatures.</div>
+            </div>
+
+            <div class="component-item">
+              <div class="component-item-name">
+                <span>Room &amp; Broadcaster Engine</span>
+                <span class="actor-pill actor-sg">Relay</span>
+              </div>
+              <div class="component-item-desc">Resolves target recipients with sender exclusion (<code>self_emit</code>) and pushes real-time payloads.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pathways Section -->
+        <div class="pathways-section">
+          <div class="pathways-title">
+            <span>⇄ Interaction &amp; Data Pathways</span>
+          </div>
+
+          <div class="pathway-list">
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">1</span>
+                <span class="pathway-actors">Frontend <span class="pathway-arrow">&rarr;</span> Laravel</span>
+                <span class="pathway-action">Client requests session-authorized WebSocket ticket</span>
+              </div>
+              <span class="pathway-badge badge-get">GET /api/signal-ticket</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">2</span>
+                <span class="pathway-actors">Laravel <span class="pathway-arrow">&rarr;</span> Frontend</span>
+                <span class="pathway-action">Returns HMAC-signed ticket <code>{ appId, timestamp, projectId, userId, signature }</code></span>
+              </div>
+              <span class="pathway-badge badge-ui">JSON Payload</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">3</span>
+                <span class="pathway-actors">Frontend <span class="pathway-arrow">&rarr;</span> Signal Gateway</span>
+                <span class="pathway-action">Client opens WebSocket handshake passing ticket in auth payload</span>
+              </div>
+              <span class="pathway-badge badge-ws">WSS /notifications</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">4</span>
+                <span class="pathway-actors">Frontend <span class="pathway-arrow">&rarr;</span> Signal Gateway</span>
+                <span class="pathway-action">Client emits <code>join_room</code> for project, application, and custom entity channels</span>
+              </div>
+              <span class="pathway-badge badge-ws">socket.emit('join_room')</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">5</span>
+                <span class="pathway-actors">Laravel <span class="pathway-arrow">&rarr;</span> Signal Gateway</span>
+                <span class="pathway-action">Backend signs and dispatches notification or task progress event</span>
+              </div>
+              <span class="pathway-badge badge-post">POST /notifications/emit</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">6</span>
+                <span class="pathway-actors">Signal Gateway <span class="pathway-arrow">&rarr;</span> Frontend</span>
+                <span class="pathway-action">Gateway pushes event to target room subscribers (filtering sender if <code>self_emit: false</code>)</span>
+              </div>
+              <span class="pathway-badge badge-ws">WebSocket Push</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">7</span>
+                <span class="pathway-actors">Frontend Client</span>
+                <span class="pathway-action"><code>SignalManager</code> executes registered callbacks, updating DOM, progress bars, and toasts</span>
+              </div>
+              <span class="pathway-badge badge-ui">UI Re-render</span>
+            </div>
+          </div>
         </div>
       </div>
 
