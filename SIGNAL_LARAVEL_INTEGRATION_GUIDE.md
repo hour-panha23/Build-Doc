@@ -13,6 +13,7 @@ This guide provides a step-by-step walkthrough for integrating **Signal Service*
 The architecture operates in two distinct, sequential phases: **Client Connection & Room Subscription**, followed by **Backend Event Emission & Real-Time Relay**.
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'darkMode': true, 'signalColor': '#38bdf8', 'signalTextColor': '#ffffff', 'actorTextColor': '#ffffff', 'actorBkg': '#1e293b', 'actorBorder': '#38bdf8', 'lineColor': '#38bdf8', 'textColor': '#ffffff', 'noteTextColor': '#ffffff', 'noteBkgColor': '#1e293b', 'noteBorderColor': '#38bdf8'}}}%%
 sequenceDiagram
     participant Client as 💻 Frontend Client (signal.js)
     participant Laravel as ⚙️ Laravel Backend
@@ -58,6 +59,7 @@ sequenceDiagram
 The Signal integration is composed of three interconnected layers: the **Frontend Client Layer**, the **Laravel Backend Integration**, and the **Signal Service Engine**.
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'darkMode': true, 'primaryColor': '#111b33', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#38bdf8', 'lineColor': '#38bdf8', 'textColor': '#ffffff', 'edgeLabelBackground': '#0f172a'}}}%%
 flowchart TD
     subgraph Frontend ["1. Frontend Client Layer (signal.js)"]
         UI["Client Browser UI"]
