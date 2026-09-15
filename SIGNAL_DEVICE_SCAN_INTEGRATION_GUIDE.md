@@ -6,52 +6,68 @@ This guide details how to integrate biometric, RFID, and facial recognition term
 
 ## 1. Architecture & Workflow Overview
 
-The hardware integration operates via the dedicated **`HardwareGateway`** in `signal-service-api`, which communicates concurrently with the physical terminal, Redis cache, the Laravel backend, and frontend display monitors.
+The hardware integration operates via the dedicated **`HardwareGateway`** in `signal-service-api` (listening on raw WebSocket port `8088`, path `/pub/chat`). It coordinates between the physical device, Redis routing/user cache, the Laravel backend, and frontend display monitors.
 
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'darkMode': true, 'signalColor': '#38bdf8', 'signalTextColor': '#ffffff', 'actorTextColor': '#ffffff', 'actorBkg': '#1e293b', 'actorBorder': '#38bdf8', 'lineColor': '#38bdf8', 'textColor': '#ffffff', 'noteTextColor': '#ffffff', 'noteBkgColor': '#1e293b', 'noteBorderColor': '#38bdf8'}}}%%
+sequenceDiagram
+    participant Device as 📟 Hardware Terminal
+    participant Signal as ⚡ Signal Gateway (:8088)
+    participant Redis as 🔴 Redis Cache
+    participant Laravel as ⚙️ Laravel Backend
+    participant Client as 🖥️ Kiosk / Room Client
+
+    Note over Device,Signal: 1. Terminal Connection & Standby
+    Device->>Signal: 1. WebSocket Connect (/pub/chat on port 8088)
+    Signal-->>Device: Connection Established (Ready & Listening)
+
+    Note over Device,Signal: 2. Physical Scan Event
+    Device->>Signal: 2. Transmit Scan Log packet (cmd: "sendlog", sn, user_id, timestamp)
+
+    Note over Signal,Redis: 3. Route Lookup (Resolve Target Room & Event)
+    Signal->>Redis: 3. Query Device Route Config (sn)
+    Redis-->>Signal: Return { projectId, appId, roomId, event }
+
+    Note over Signal,Laravel: 4. Scanned User Data Lookup & Fallback
+    Signal->>Redis: 4. Check Scanned User Cache (device:user:{sn}:{userId})
+    alt User Data Found in Cache (Cache Hit)
+        Redis-->>Signal: Return cached user details & access permission
+    else Cache Miss (Fetch from Laravel)
+        Signal->>Laravel: 5. POST /api/student/attendance/access-scan
+        Laravel-->>Signal: 6. Return user details & access status (access: 1/0)
+        Signal->>Redis: 7. Store user data in Redis cache
+    end
+
+    Note over Device,Client: 5. Device Acknowledgment & Real-Time Broadcast
+    Signal-->>Device: 8. Acknowledge Scan (ack & access result for chime/buzzer)
+    Signal-->>Client: 9. WebSocket Emit Event to Room (project:{projectId}:app:{appId}:room:{roomId})
+    Client->>Client: 10. Update Kiosk UI (Avatar, Student Name, Status Sound)
 ```
-+---------------------------+
-| Biometric / RFID Terminal |
-|    (Hardware Device)      |
-+---------------------------+
-              |
-              | 1. Scan Record via Raw WebSocket (Port 8088 /pub/chat)
-              v
-+-----------------------------------------------------------------------+
-| SIGNAL HARDWARE GATEWAY (signal-service-api)                          |
-|   - Deduplication (Redis 3s window)                                   |
-|   - Lookup Device Route: DeviceService.getProjectForDevice(sn)        |
-|     -> { projectId, appId, roomId, event }                            |
-+-----------------------------------------------------------------------+
-              |                                        ^
-              | 2. Check Permission (If Cache Miss)   | 3. Access Decision
-              v                                        |    { access: 1/0 }
-+-----------------------------------------------------------------------+
-| LARAVEL BACKEND (routes/api.php)                                      |
-|   POST /api/student/attendance/access-scan                            |
-|   Headers: X-Internal-Secret                                          |
-|   - Validates student enrollment & attendance schedule                |
-+-----------------------------------------------------------------------+
-              |
-              | 4. Broadcast Real-Time Scan Event to Room
-              v
-+-----------------------------------------------------------------------+
-| FRONTEND ATTENDANCE CLIENT (signal.js & ScanAttendanceComponent.js)   |
-|   - Subscribes via /api/scan-attendance-signal-ticket                 |
-|   - Renders instant avatar, check-in sound & status badge             |
-+-----------------------------------------------------------------------+
-```
 
-### Key Workflow Stages
+### End-to-End Workflow Stages
 
-1. **Terminal Scan Ingestion**: The physical device opens a raw WebSocket connection to Signal on port `8088` (`/pub/chat`) and transmits attendance logs (`cmd: "sendlog"`).
-2. **Deduplication**: Signal checks Redis (`scan:dedupe:...`) using a 3-second window (`DUPLICATE_SCAN_WINDOW_SEC = 3`) to eliminate double-scanning.
-3. **Route Lookup**: Signal checks the device serial number (`sn`) against registered routes to resolve `{ projectId, appId, roomId, event }`.
-4. **Access Verification (Laravel)**:
-   - Signal checks its local in-memory cache and Redis (`device:user:{sn}:{userId}`).
-   - On a cache miss, Signal issues a high-priority HTTP POST request to Laravel (`/api/student/attendance/access-scan`).
-   - Laravel evaluates student/employee status and returns `access: 1` (allowed) or `access: 0` (denied).
-5. **Terminal Response**: Signal sends an immediate acknowledgement back to the hardware device containing the decision (`access: 1` or `0`, with audible pass/deny prompt on the terminal).
-6. **Real-Time UI Broadcast**: Signal emits the scan event to the connected frontend room, allowing live kiosks, gates, or dashboards to display the student card instantly.
+1. **Terminal Connection & Standby**:
+   - The hardware device connects first to the Signal Service via raw WebSocket on port `8088` (`/pub/chat`).
+   - Signal registers the active device connection, and the terminal enters standby, awaiting user scans.
+
+2. **Scan Event & Log Transmission**:
+   - When a user scans (biometric face, fingerprint, or RFID card), the device packages the record into a JSON payload (`cmd: "sendlog"`) and transmits it over the open WebSocket to Signal.
+
+3. **Redis Route Lookup (`projectId`, `appId`, `roomId`, `event`)**:
+   - Signal queries Redis for the device's registered route configuration using the terminal serial number (`sn`).
+   - Resolves target routing metadata: `{ projectId, appId, roomId, event }` to determine which project, application, room, and event name to emit to.
+
+4. **User Data Lookup & Cache Fallback**:
+   - Signal checks Redis for the scanned user's profile and access cache (`device:user:{sn}:{userId}`).
+   - **Cache Hit**: Returns cached user profile instantly.
+   - **Cache Miss**: Signal calls the Laravel backend (`POST /api/student/attendance/access-scan`) with internal authentication headers to retrieve the user's information and access decision. Once received, Signal caches the user data in Redis for subsequent scans.
+
+5. **Terminal Acknowledgment (`ack`)**:
+   - Signal sends an immediate acknowledgment response back to the hardware device socket so the terminal can provide visual screen feedback and sound cues (success chime for allowed, warning buzzer for denied).
+
+6. **Real-Time Room Broadcast**:
+   - Signal emits the message payload to the designated target room (`project:{projectId}:app:{appId}:room:{roomId}`) using the resolved `event`.
+   - Connected frontend clients (e.g. `ScanAttendanceComponent.js` on live kiosk monitors or gate displays) receive the event and instantly update the DOM with the student's avatar, name, and timestamp.
 
 ---
 
