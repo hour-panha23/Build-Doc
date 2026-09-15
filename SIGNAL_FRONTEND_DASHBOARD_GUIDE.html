@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Service - Frontend Dashboard Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-code: #070b13;
+      --border-color: #1f293d;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --primary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 290px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.68;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside.sidebar {
+      width: var(--sidebar-width);
+      background: #090d16;
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #6366f1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    nav.toc {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    nav.toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    nav.toc a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    nav.toc a.active {
+      color: #38bdf8;
+      background: var(--accent-glow);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding-top: 18px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-external-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #111b33;
+      border: 1px solid #1f2f54;
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #38bdf8;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .nav-external-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+    }
+
+    /* Main Container */
+    main.content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 1080px;
+      padding: 48px 56px 96px;
+    }
+
+    header.doc-header {
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    section {
+      margin-bottom: 64px;
+      scroll-margin-top: 40px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 28px 0 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: #cbd5e1;
+      font-size: 14.5px;
+    }
+
+    ul, ol {
+      margin: 0 0 18px 24px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #131b2e;
+      color: #38bdf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    /* Code Block Containers */
+    .code-container {
+      background: var(--bg-code);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin: 18px 0 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #0d1322;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .copy-btn.copied {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--success);
+      color: #a7f3d0;
+    }
+
+    pre {
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #f1f5f9;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 18px 0;
+      font-size: 13.5px;
+      line-height: 1.55;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .alert-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .alert-info {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #bae6fd;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fde68a;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 13.5px;
+      background: #0d1424;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    th {
+      background: #111a30;
+      color: #f8fafc;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.6px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Module Grid & Cards */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 28px 0;
+    }
+
+    @media (max-width: 1024px) {
+      .modules-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .module-card {
+      background: #0d1527;
+      border: 1px solid #1e2c4f;
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .module-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .module-card.mod-mon { border-top: 4px solid #38bdf8; }
+    .module-card.mod-prj { border-top: 4px solid #6366f1; }
+    .module-card.mod-dev { border-top: 4px solid #10b981; }
+
+    .module-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .module-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .mod-mon .module-icon { background: rgba(56, 189, 248, 0.15); }
+    .mod-prj .module-icon { background: rgba(99, 102, 241, 0.15); }
+    .mod-dev .module-icon { background: rgba(16, 185, 129, 0.15); }
+
+    .module-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .module-route {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .module-desc {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .module-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #111b33;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Feature Cards */
+    .feature-card {
+      background: #0e162b;
+      border: 1px solid #1e2c4f;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .feature-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    /* Latency Meter Pill */
+    .latency-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .lat-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .lat-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .lat-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      aside.sidebar {
+        display: none;
+      }
+      main.content {
+        margin-left: 0;
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge">🖥️</div>
+      <div>
+        <div class="brand-title">Signal Service</div>
+        <div class="brand-sub">Frontend Dashboard</div>
+      </div>
+    </div>
+    <nav class="toc">
+      <a href="#architecture" class="active">1. System Architecture</a>
+      <a href="#setup">2. Setup &amp; Config</a>
+      <a href="#monitoring">3. Realtime Monitoring</a>
+      <a href="#project">4. Project Management</a>
+      <a href="#device">5. Device Management</a>
+      <a href="#proxy">6. Internal BFF Proxy</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="SIGNAL_LARAVEL_INTEGRATION_GUIDE.html" class="nav-external-btn">
+        <span>&larr; Laravel Guide</span>
+      </a>
+      <a href="SIGNAL_DEVICE_SCAN_INTEGRATION_GUIDE.html" class="nav-external-btn">
+        <span>&larr; Device Scan Guide</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+    <header class="doc-header">
+      <span class="tag">Next.js 15 &bull; Dashboard Portal</span>
+      <h1>Signal Service - Frontend Management Dashboard Guide</h1>
+      <p class="lead">Comprehensive developer and operator documentation for the centralized web dashboard (<code>signal-service</code>) containing the 3 primary operational modules: Real-Time Monitoring, Project Administration, and Hardware Device Management.</p>
+    </header>
+
+    <!-- MODULES OVERVIEW CARDS -->
+    <div class="modules-grid">
+      <div class="module-card mod-mon">
+        <div>
+          <div class="module-top">
+            <div class="module-icon">📡</div>
+            <div>
+              <div class="module-title">Realtime Monitoring</div>
+              <div class="module-route">/monitoring</div>
+            </div>
+          </div>
+          <div class="module-desc">Real-time event stream inspector, RTT latency meter, channel subscription manager, and S2S test emission console.</div>
+        </div>
+        <div class="module-tags">
+          <span class="tag-chip">Socket.io</span>
+          <span class="tag-chip">RTT Latency</span>
+          <span class="tag-chip">Admin Mode</span>
+          <span class="tag-chip">S2S Emit</span>
+        </div>
+      </div>
+
+      <div class="module-card mod-prj">
+        <div>
+          <div class="module-top">
+            <div class="module-icon">📁</div>
+            <div>
+              <div class="module-title">Project Management</div>
+              <div class="module-route">/project</div>
+            </div>
+          </div>
+          <div class="module-desc">Multi-tenant project isolation, HMAC-SHA256 secret key generation/rotation, webhook routing, and lifecycle control.</div>
+        </div>
+        <div class="module-tags">
+          <span class="tag-chip">HMAC Keys</span>
+          <span class="tag-chip">Tenant Isolation</span>
+          <span class="tag-chip">Webhooks</span>
+          <span class="tag-chip">Pagination</span>
+        </div>
+      </div>
+
+      <div class="module-card mod-dev">
+        <div>
+          <div class="module-top">
+            <div class="module-icon">📟</div>
+            <div>
+              <div class="module-title">Device Management</div>
+              <div class="module-route">/device</div>
+            </div>
+          </div>
+          <div class="module-desc">Hardware terminal registration (AiFace), serial number mapping, Redis routing configuration, and verification webhooks.</div>
+        </div>
+        <div class="module-tags">
+          <span class="tag-chip">AiFace Terminals</span>
+          <span class="tag-chip">Redis Routes</span>
+          <span class="tag-chip">Port 8088</span>
+          <span class="tag-chip">Kiosks</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 1 -->
+    <section id="architecture">
+      <h2>1. System Architecture &amp; Tech Stack</h2>
+      <p>The dashboard is engineered as a modern Single Page Application (SPA) powered by <strong>Next.js 15 (App Router)</strong>, <strong>React 19</strong>, and <strong>TanStack Query v5</strong>. It securely proxies all backend traffic through server route handlers to hide internal secrets.</p>
+
+      <h3>Technology Stack</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Technology</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Framework</strong></td>
+            <td>Next.js 15.1 + React 19</td>
+            <td>App router, server-side route handlers, responsive UI layout</td>
+          </tr>
+          <tr>
+            <td><strong>State &amp; Fetching</strong></td>
+            <td>TanStack React Query v5</td>
+            <td>Server state caching, background refetching, mutations, optimistic updates</td>
+          </tr>
+          <tr>
+            <td><strong>Real-Time Layer</strong></td>
+            <td>Socket.IO Client v4.8</td>
+            <td>Persistent connection to <code>/notifications</code> gateway, heartbeat diagnostics</td>
+          </tr>
+          <tr>
+            <td><strong>Styling &amp; Icons</strong></td>
+            <td>Tailwind CSS + Lucide Icons</td>
+            <td>Clean modern dark-mode design system and operational iconography</td>
+          </tr>
+          <tr>
+            <td><strong>BFF Proxy</strong></td>
+            <td>Next.js Route Handlers</td>
+            <td><code>/api/proxy/[...path]</code> forwards client requests to <code>signal-service-api</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="setup">
+      <h2>2. Environment Configuration &amp; Setup</h2>
+      <p>Configure environment variables in <code>.env.local</code>:</p>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>ENV (.env.local)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code># Core Signal Service Gateway (NestJS REST & Socket)
+SIGNAL_API_URL=http://localhost:3000
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
+
+# Next.js Internal BFF Proxy Secret
+INTERNAL_PROXY_SECRET=your_secure_internal_proxy_secret</code></pre>
+      </div>
+
+      <h3>Development Commands</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>BASH</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code># Install dependencies
+pnpm install
+
+# Run local development server
+pnpm dev
+
+# Build optimized production bundle
+pnpm build
+
+# Start production server
+pnpm start</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="monitoring">
+      <h2>3. Module 1: Real-Time Event Monitoring (<code>/monitoring</code>)</h2>
+      <p>The monitoring console (<code>src/components/RealtimeMonitor.tsx</code>) provides live visibility into active connections, real-time message streams, and connection performance metrics.</p>
+
+      <div class="feature-card">
+        <div class="feature-title">⚡ Dual Connection Modes</div>
+        <div class="feature-desc">
+          <strong>App Mode:</strong> Connects with a specific <code>projectId</code> and <code>secret</code> to observe tenant-level traffic.<br>
+          <strong>Admin Mode:</strong> Emits an <code>admin_subscribe</code> handshake, granting global visibility over broadcast traffic and internal server logs across all projects.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">⏱️ Real-Time RTT Latency &amp; Diagnostic Health</div>
+        <div class="feature-desc">
+          Continuously benchmarks round-trip ping/pong times to the WebSocket gateway:<br>
+          &bull; <span class="latency-pill lat-green">&lt; 100ms</span> Optimal throughput<br>
+          &bull; <span class="latency-pill lat-yellow">100ms – 300ms</span> Moderate delay<br>
+          &bull; <span class="latency-pill lat-red">&gt; 300ms</span> Network congestion / High latency<br>
+          Also tracks <code>lastDisconnectReason</code> and provides auto-reconnect retry counter.
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">🎯 S2S Test Emission Console</div>
+        <div class="feature-desc">
+          Allows operators to dispatch test payloads directly from the dashboard across 5 distinct broadcast scopes:
+          <code>Broadcast</code>, <code>Project</code>, <code>App</code>, <code>Room</code>, or targeted <code>User</code>.
+        </div>
+      </div>
+
+      <h3>Core Socket Hook (<code>src/hook/useSocket.ts</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>TypeScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>export function useSocket() {
+  const {
+    socket,
+    isConnected,
+    adminSubscribed,
+    connectSocket,
+    disconnectSocket,
+    toggleAdmin,
+    logs,
+    clearLogs,
+    clientEvents,
+    emitLogs,
+    connectedClientCount,
+    latency,
+    autoReconnect,
+    toggleAutoReconnect,
+    lastDisconnectReason,
+    reconnectAttempt,
+  } = useSocket();
+
+  // ...
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="project">
+      <h2>4. Module 2: Project Management (<code>/project</code>)</h2>
+      <p>The Project Management module (<code>src/components/ProjectManagement/</code>) controls project containers, tenant isolation, and cryptographic secrets.</p>
+
+      <h3>Project Data Contract</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>project_id</code></td>
+            <td><code>string</code></td>
+            <td>Unique project ID (e.g. <code>project_e4de70df23a96fdb</code>) passed in headers</td>
+          </tr>
+          <tr>
+            <td><code>name</code></td>
+            <td><code>string</code></td>
+            <td>Human-readable display name</td>
+          </tr>
+          <tr>
+            <td><code>secret_key</code></td>
+            <td><code>string</code></td>
+            <td>64-character hex HMAC secret (revealed via Secret Modal)</td>
+          </tr>
+          <tr>
+            <td><code>webhook_url</code></td>
+            <td><code>string|null</code></td>
+            <td>HTTP URL receiving asynchronous event notifications</td>
+          </tr>
+          <tr>
+            <td><code>is_active</code></td>
+            <td><code>boolean</code></td>
+            <td>Active status toggle (inactive projects reject all incoming emissions)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-danger">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Secret Key Regeneration Impact:</strong><br>
+          Regenerating a project's secret key will immediately invalidate all active Laravel backend signatures and frontend client connection tickets. Ensure backend <code>.env</code> files are updated simultaneously.
+        </div>
+      </div>
+
+      <h3>Project Service Endpoints (<code>src/services/project/project.service.ts</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>TypeScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// Fetch paginated project list
+export async function listProject(params: OffsetPaginationPayload&lt;Project&gt;);
+
+// Register new project
+export async function createProject(param: Partial&lt;CreateProjectParam&gt;);
+
+// Toggle project status
+export async function enableProject(id: string);
+export async function disableProject(id: string);
+
+// Rotate HMAC Secret Key
+export async function regenerateSecret(id: string);
+
+// Delete project
+export async function deleteProject(id: string);</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="device">
+      <h2>5. Module 3: Hardware Device Management (<code>/device</code>)</h2>
+      <p>The Device Management module (<code>src/components/DeviceManagement/</code>) configures biometric, RFID, and facial recognition terminals (e.g. AiFace hardware devices) that connect to Signal's <code>HardwareGateway</code> on port <code>8088</code>.</p>
+
+      <h3>Device Data Contract</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>device_name</code></td>
+            <td><code>string</code></td>
+            <td>Descriptive label (e.g. <code>Main Entrance Gate A</code>)</td>
+          </tr>
+          <tr>
+            <td><code>device_serial</code></td>
+            <td><code>string</code></td>
+            <td>Hardware serial number (<code>sn</code>) reported in terminal packets</td>
+          </tr>
+          <tr>
+            <td><code>project_id</code></td>
+            <td><code>string</code></td>
+            <td>Associated project identifier</td>
+          </tr>
+          <tr>
+            <td><code>app_id</code></td>
+            <td><code>string</code></td>
+            <td>Target application identifier</td>
+          </tr>
+          <tr>
+            <td><code>room</code></td>
+            <td><code>string</code></td>
+            <td>Destination room/channel (e.g. <code>attendance_kiosk_gate1</code>)</td>
+          </tr>
+          <tr>
+            <td><code>event</code></td>
+            <td><code>string</code></td>
+            <td>Real-time event name emitted upon scan (e.g. <code>student_scanned</code>)</td>
+          </tr>
+          <tr>
+            <td><code>webhook</code></td>
+            <td><code>string</code></td>
+            <td>Backend verification endpoint (e.g. Laravel access scan API)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Dynamic Room Re-Routing:</strong><br>
+          Editing a terminal's <code>room</code> or <code>event</code> in this dashboard updates the Redis route cache immediately. You do not need to restart or re-configure physical terminal firmware to change destination broadcast rooms.
+        </div>
+      </div>
+
+      <h3>Device Service Endpoints (<code>src/services/device/device.service.ts</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>TypeScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// Fetch registered terminal list
+export async function listDevices(params: OffsetPaginationPayload&lt;Device&gt;);
+
+// Register a new physical terminal
+export async function createDevice(data: CreateDevice);
+
+// Update room assignment or event name
+export async function updateDevice(id: number | string, data: UpdateDevice);
+
+// De-register a hardware terminal
+export async function deleteDevice(id: number | string);</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section id="proxy">
+      <h2>6. Internal API &amp; BFF Proxy Architecture</h2>
+      <p>All API communication is routed through the Next.js server route handler <code>/api/proxy/[...path]</code> to protect API credentials and backend endpoints from client browser exposure.</p>
+
+      <div class="code-container">
+        <div class="code-header">
+          <span>TypeScript (src/config/api.ts)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>const INTERNAL_API_BASE = "/api/proxy";
+
+export const API_ENDPOINTS = {
+  auth: {
+    login: "/api/proxy/auth/login",
+    logout: "/api/proxy/auth/logout",
+    refresh: "/api/proxy/auth/refresh",
+  },
+  project: {
+    listProject: "/api/proxy/projects/list",
+    createProject: "/api/proxy/projects/create",
+    regenerateSecret: (id: string) => `/api/proxy/projects/regenerate-secret/${id}`,
+    updateProject: (id: string) => `/api/proxy/projects/update/${id}`,
+    enableProject: (id: string) => `/api/proxy/projects/enable/${id}`,
+    disableProject: (id: string) => `/api/proxy/projects/disable/${id}`,
+    deleteProject: (id: string) => `/api/proxy/projects/delete/${id}`,
+  },
+  device: {
+    listDevices: "/api/proxy/devices/list",
+    createDevice: "/api/proxy/devices/create",
+    updateDevice: (id: string) => `/api/proxy/devices/update/${id}`,
+    deleteDevice: (id: string) => `/api/proxy/devices/delete/${id}`,
+  },
+} as const;</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Click to copy functionality
+    function copyCode(btn) {
+      const container = btn.closest('.code-container');
+      const code = container.querySelector('pre code').innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    // Scrollspy navigation
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('nav.toc a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
