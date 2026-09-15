@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Service - Laravel Integration Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-code: #070b13;
+      --border-color: #1f293d;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --primary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 290px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.68;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside.sidebar {
+      width: var(--sidebar-width);
+      background: #090d16;
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    nav.toc {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    nav.toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    nav.toc a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    nav.toc a.active {
+      color: #38bdf8;
+      background: var(--accent-glow);
+      font-weight: 600;
+    }
+
+    /* Main Container */
+    main.content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 1080px;
+      padding: 48px 56px 96px;
+    }
+
+    header.doc-header {
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    p.lead {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    section {
+      margin-bottom: 60px;
+      scroll-margin-top: 32px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 19px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin: 28px 0 14px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin: 20px 0 10px;
+    }
+
+    p, ul, ol {
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      font-size: 14.5px;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+
+    .alert-note {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      color: #bae6fd;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: #f59e0b;
+      color: #fde68a;
+    }
+
+    .alert-important {
+      background: rgba(99, 102, 241, 0.08);
+      border-color: #6366f1;
+      color: #c7d2fe;
+    }
+
+    /* Code Blocks with Copy Button */
+    .code-container {
+      position: relative;
+      margin: 20px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-code);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .copy-btn.copied {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border-color: #10b981;
+    }
+
+    pre {
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #f1f5f9;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    p code, li code {
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0;
+      font-size: 13.5px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: #131b2e;
+      color: #f8fafc;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .check-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid #38bdf8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Quick Link Card */
+    .guide-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(56, 189, 248, 0.05));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 24px;
+      border-radius: 12px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .guide-btn {
+      background: #6366f1;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .guide-btn:hover {
+      background: #4f46e5;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      aside.sidebar {
+        display: none;
+      }
+      main.content {
+        margin-left: 0;
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge">S</div>
+      <div>
+        <div class="brand-title">Signal Service</div>
+        <div class="brand-sub">Laravel Integration</div>
+      </div>
+    </div>
+    <nav class="toc">
+      <a href="#intro" class="active">1. Introduction</a>
+      <a href="#structure">2. Detailed Structure</a>
+      <a href="#backend">3. Backend Configuration</a>
+      <a href="#frontend">4. Frontend Integration</a>
+      <a href="#devices">5. Device Scanning</a>
+      <a href="#checklist">6. Developer Checklist</a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+    <header class="doc-header">
+      <span class="tag">Official Integration Guide</span>
+      <h1>Signal Service - Laravel Integration Guide</h1>
+      <p class="lead">Complete step-by-step technical documentation for connecting Laravel applications to the centralized real-time Signal Service gateway.</p>
+    </header>
+
+    <!-- SECTION 1 -->
+    <section id="intro">
+      <h2>1. Introduction</h2>
+      <p>Signal Service is a centralized real-time messaging and notification system designed to deliver instant updates and notifications between backend services and client applications.</p>
+      <p>This guide provides a comprehensive walkthrough for integrating <strong>Signal Service</strong> into a <strong>Laravel</strong> application. Through this integration, your Laravel backend can securely emit real-time events and notifications, while your client applications can subscribe and react to events instantly.</p>
+
+      <h3>Architecture Overview</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>Architecture Flow</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>+--------------------------+          HTTP (HMAC Signed)          +--------------------------+
+|                          | -----------------------------------> |                          |
+|     Laravel Backend      |                                      |      Signal Service      |
+|   (App\Services\Signal)  | <----------------------------------- |   (signal-service-api)   |
+|                          |          Webhook / Responses         |                          |
++--------------------------+                                      +--------------------------+
+                                                                               |
+                                                                               | WebSockets / Realtime
+                                                                               v
+                                                                  +--------------------------+
+                                                                  |      Frontend Client     |
+                                                                  |        (signal.js)       |
+                                                                  +--------------------------+</code></pre>
+      </div>
+
+      <h3>Key Capabilities</h3>
+      <ul>
+        <li><strong>Real-Time Event Broadcasting</strong>: Broadcast messages and state changes to connected clients instantly (<code>realtime</code>).</li>
+        <li><strong>Targeted Messaging</strong>:
+          <ul>
+            <li><code>all</code>: Broadcast to every connected client in a room/project.</li>
+            <li><code>someone</code>: Deliver directly to specific user(s).</li>
+            <li><code>self_except</code>: Broadcast to all users except the originator.</li>
+          </ul>
+        </li>
+        <li><strong>Persistent Notifications</strong>: Send in-app notification payloads (<code>notify</code>).</li>
+        <li><strong>Secure Communication</strong>: API requests between Laravel and Signal Service are verified using HMAC-SHA256 signatures (<code>x-project-id</code>, <code>x-timestamp</code>, <code>x-signature</code>).</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="structure">
+      <h2>2. Detailed Structure of Signal Integration</h2>
+      <p>The Signal integration is composed of three interconnected layers: the <strong>Signal Service Engine</strong>, the <strong>Laravel Backend Integration</strong>, and the <strong>Frontend Client Layer</strong>.</p>
+
+      <h3>2.1 Component Breakdown</h3>
+      <h4>A. Signal Service Server (<code>signal-service-api</code>)</h4>
+      <ul>
+        <li><strong>WebSocket Gateway</strong>: Operates on a dedicated namespace (<code>/notifications</code>), managing long-lived WebSocket connections with clients.</li>
+        <li><strong>HMAC Verification Engine</strong>: Validates client connection tickets and backend HTTP emit requests against the shared secret.</li>
+        <li><strong>Room Engine</strong>: Routes messages based on project, application, user, or dynamic custom rooms.</li>
+      </ul>
+
+      <h4>B. Laravel Backend Service Layer</h4>
+      <ul>
+        <li><strong>Configuration (<code>config/signal.php</code>)</strong>: Holds connection parameters (<code>SIGNAL_URL</code>, <code>SIGNAL_PROJECT_ID</code>, <code>SIGNAL_SECRET</code>).</li>
+        <li><strong>SignalService (<code>App\Services\SignalService</code>)</strong>: Implements the HTTP client to communicate with the Signal API via HMAC-SHA256 headers.</li>
+        <li><strong>Ticket Issuer Route (<code>/api/signal-ticket</code>)</strong>: Generates short-lived, signed tickets for authenticated users to connect to WebSockets.</li>
+      </ul>
+
+      <h4>C. Frontend Client Layer (<code>signal.js</code>)</h4>
+      <ul>
+        <li><strong>SignalManager Singleton</strong>: Automatically fetches tickets, establishes WebSocket sessions, synchronizes room subscriptions, and binds global application listeners.</li>
+      </ul>
+
+      <h3>2.2 Data Contract & Protocol Structure</h3>
+
+      <h4>1. Authentication Ticket Structure (Client to Signal Handshake)</h4>
+      <p>When the frontend connects to the Signal server, it passes authentication credentials in the Socket.IO handshake auth object:</p>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JSON</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>{
+  "app_id": "8AE496F4C88EB47721B5B202EBDBC546",
+  "timestamp": "1726308000",
+  "project_id": "YOUR_PROJECT_ID",
+  "user_id": "142",
+  "signature": "c8b4a2e5d7... (HMAC-SHA256 of appId.timestamp.projectId.userId)"
+}</code></pre>
+      </div>
+
+      <h4>2. Backend Emit Payload Structure (Laravel to Signal)</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>project_id</code></td>
+            <td><code>string</code></td>
+            <td>Yes</td>
+            <td>Target project identifier</td>
+          </tr>
+          <tr>
+            <td><code>app_id</code></td>
+            <td><code>string</code></td>
+            <td>Optional</td>
+            <td>Target application ID</td>
+          </tr>
+          <tr>
+            <td><code>user_id</code></td>
+            <td><code>string</code></td>
+            <td>Optional</td>
+            <td>Specific target user ID</td>
+          </tr>
+          <tr>
+            <td><code>room</code></td>
+            <td><code>string</code></td>
+            <td>Optional</td>
+            <td>Dynamic room/channel name</td>
+          </tr>
+          <tr>
+            <td><code>event</code></td>
+            <td><code>string</code></td>
+            <td>Yes</td>
+            <td>Event name (e.g., <code>term_promoting</code>, <code>approval_updated</code>)</td>
+          </tr>
+          <tr>
+            <td><code>payload</code></td>
+            <td><code>array|object</code></td>
+            <td>Yes</td>
+            <td>Event payload data</td>
+          </tr>
+          <tr>
+            <td><code>self_emit</code></td>
+            <td><code>bool</code></td>
+            <td>Optional</td>
+            <td>Whether to reflect back to sender socket</td>
+          </tr>
+          <tr>
+            <td><code>sender_socket_id</code></td>
+            <td><code>string</code></td>
+            <td>Optional</td>
+            <td>Socket ID of the user initiating the action</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>3. Backend Header Security Signature</h4>
+      <p>All HTTP requests from Laravel to Signal Service include:</p>
+      <ul>
+        <li><code>x-project-id</code>: The configured project ID.</li>
+        <li><code>x-timestamp</code>: Unix timestamp string.</li>
+        <li><code>x-signature</code>: HMAC-SHA256 hash of <code>"{projectId}.{timestamp}"</code> with <code>SIGNAL_SECRET</code>.</li>
+      </ul>
+
+      <div class="alert alert-warning">
+        <strong>Strict 60-Second Timestamp Window (<code>MAX_CLOCK_SKEW_SECONDS = 60</code>)</strong><br>
+        The <code>signal-service-api</code> enforces a maximum clock skew of 60 seconds (<code>isTimestampFresh()</code>) on both HTTP requests and WebSocket handshakes. Ensure that server clocks on both Laravel and Signal are synchronized via NTP.
+      </div>
+
+      <h3>2.3 Room Hierarchy & Routing Precedence</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Scope</th>
+            <th>Internal Room Name in Signal Gateway</th>
+            <th>Joined By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Project Scope</strong></td>
+            <td><code>project:{projectId}</code></td>
+            <td>All apps and users in the project</td>
+          </tr>
+          <tr>
+            <td><strong>App Scope</strong></td>
+            <td><code>project:{projectId}:app:{appId}</code></td>
+            <td>Specific app clients (e.g. Formal, Tutor)</td>
+          </tr>
+          <tr>
+            <td><strong>Custom Room</strong></td>
+            <td><code>project:{projectId}:app:{appId}:room:{roomId}</code></td>
+            <td>Sockets joining via <code>join_room</code></td>
+          </tr>
+          <tr>
+            <td><strong>User Channel</strong></td>
+            <td><code>user:{projectId}:{appId}:{userId}</code> &amp; <code>user:{projectId}:{userId}</code></td>
+            <td>User-scoped private notifications</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Routing Precedence in <code>NotificationsService.sendMessage</code></h4>
+      <ol>
+        <li><strong>Target User</strong>: If <code>user_id</code>, <code>app_id</code>, and <code>project_id</code> are provided &rarr; Emits to room <code>user:{projectId}:{appId}:{userId}</code>.</li>
+        <li><strong>Target Custom Room</strong>: If <code>room</code>, <code>app_id</code>, and <code>project_id</code> are provided &rarr; Emits to room <code>project:{projectId}:app:{appId}:room:{roomId}</code>.</li>
+        <li><strong>Target App</strong>: If <code>app_id</code> and <code>project_id</code> are provided &rarr; Emits to room <code>project:{projectId}:app:{appId}</code>.</li>
+        <li><strong>Target Project</strong>: If <code>project_id</code> is provided &rarr; Emits to room <code>project:{projectId}</code>.</li>
+        <li><strong>Broadcast</strong>: If none of the above are specified &rarr; Emits to all active sockets connected to the gateway.</li>
+      </ol>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="backend">
+      <h2>3. Laravel Backend Configuration & Implementation</h2>
+
+      <h3>3.1 Environment Configuration (<code>.env</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>.env</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code># Signal Service Configuration
+SIGNAL_URL=https://your-signal-server.example.com
+SIGNAL_PROJECT_ID=YOUR_SIGNAL_PROJECT_ID
+SIGNAL_SECRET=YOUR_SIGNAL_SECRET_KEY</code></pre>
+      </div>
+
+      <h3>3.2 Signal Config File (<code>config/signal.php</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (config/signal.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>&lt;?php
+
+return [
+    'signal_project_id' =&gt; env('SIGNAL_PROJECT_ID'),
+    'signal_url'        =&gt; env('SIGNAL_URL'),
+    'signal_secret'     =&gt; env('SIGNAL_SECRET'),
+];</code></pre>
+      </div>
+
+      <h3>3.3 Core Service: <code>SignalService.php</code> (<code>app/Services/SignalService.php</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (app/Services/SignalService.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>&lt;?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
+
+enum EmitTarget: string
+{
+    case ALL = 'all';
+    case SOMEONE = 'someone';
+    case SELF_EXCEPT = 'self_except';
+}
+
+enum EmitType: string
+{
+    case REALTIME = 'realtime';
+    case NOTIFY = 'notify';
+}
+
+class SignalService
+{
+    private static string $baseUrl;
+    private static string $projectId;
+    private static string $secret;
+
+    private static function init(): void
+    {
+        if (isset(self::$projectId)) {
+            return;
+        }
+
+        self::$baseUrl   = config('signal.signal_url') ?? '';
+        self::$projectId = config('signal.signal_project_id') ?? '';
+        self::$secret    = config('signal.signal_secret') ?? '';
+    }
+
+    /**
+     * Generate HMAC-SHA256 signature for API requests.
+     */
+    private static function sign(string $timestamp, string $rawBody): string
+    {
+        return hash_hmac(
+            'sha256',
+            self::$projectId . "." . $timestamp,
+            self::$secret
+        );
+    }
+
+    /**
+     * Send GET request to Signal Service with signature headers.
+     */
+    public static function get(string $path, array $query = [], int $timeout = 5): array
+    {
+        self::init();
+        $timestamp = (string) time();
+
+        $response = Http::timeout($timeout)
+            -&gt;withHeaders([
+                'x-project-id' =&gt; self::$projectId,
+                'x-timestamp'  =&gt; $timestamp,
+                'x-signature'  =&gt; self::sign($timestamp, ''),
+            ])-&gt;get(self::$baseUrl . "/notifications/{$path}", $query);
+
+        return $response-&gt;json() ?? [];
+    }
+
+    /**
+     * Send POST request with JSON payload to Signal Service.
+     */
+    public static function post(string $path, array $body): array
+    {
+        self::init();
+
+        $timestamp = (string) time();
+        $rawBody   = json_encode($body);
+
+        $response = Http::withHeaders([
+            'x-project-id' =&gt; self::$projectId,
+            'x-timestamp'  =&gt; $timestamp,
+            'x-signature'  =&gt; self::sign($timestamp, $rawBody),
+            'Content-Type' =&gt; 'application/json',
+        ])
+            -&gt;withBody($rawBody, 'application/json')
+            -&gt;post(self::$baseUrl . "/notifications/{$path}");
+
+        return $response-&gt;json() ?? [];
+    }
+
+    /**
+     * Non-blocking status check with strict timeout, caching, and fallback error handling.
+     */
+    public static function getServiceStatus(int $ttlSeconds = 30): array
+    {
+        return Cache::remember('signal_service_status', $ttlSeconds, function () {
+            try {
+                $status = self::get('status', [], timeout: 2);
+
+                return [
+                    'status_code' =&gt; 200,
+                    'status'      =&gt; true,
+                    'data'        =&gt; $status,
+                ];
+            } catch (Throwable $e) {
+                Log::warning('SignalService status check failed: ' . $e-&gt;getMessage());
+
+                return [
+                    'status_code' =&gt; 503,
+                    'status'      =&gt; false,
+                    'data'        =&gt; [
+                        'error' =&gt; 'Service unreachable',
+                    ],
+                ];
+            }
+        });
+    }
+
+    /**
+     * Emit background task progress updates (used in queued jobs).
+     */
+    public static function taskEmit(
+        string $event,
+        array $payload,
+        string $socketId = null,
+        string $user_class = null,
+        ?string $userId = null,
+        ?string $room = null,
+        ?bool $selfEmit = false,
+    ): array {
+        if (!$socketId) {
+            return [];
+        }
+        self::init();
+
+        $data = array_filter([
+            'project_id'       =&gt; self::$projectId,
+            'app_id'           =&gt; function_exists('getAppIdByUserClass') ? getAppIdByUserClass($user_class) : null,
+            'user_id'          =&gt; $userId,
+            'room'             =&gt; $room,
+            'event'            =&gt; $event,
+            'payload'          =&gt; $payload,
+            'sender_socket_id' =&gt; $socketId,
+            'self_emit'        =&gt; $selfEmit,
+        ], fn($value) =&gt; $value !== null);
+
+        return self::post('emit', $data);
+    }
+
+    /**
+     * Emit general events or targeted notifications to clients.
+     */
+    public static function eventEmit(
+        string $event,
+        array $payload,
+        EmitTarget|string $target = EmitTarget::ALL,
+        EmitType|string $type = EmitType::REALTIME,
+        ?string $appId = null,
+        ?string $userId = null,
+        ?string $room = null,
+    ): array {
+        self::init();
+
+        Log::info("[Signal] Emitting: " . self::$projectId . " {$event} " . json_encode($payload));
+
+        $data = array_filter([
+            'project_id' =&gt; self::$projectId,
+            'app_id'     =&gt; $appId,
+            'user_id'    =&gt; $userId,
+            'room'       =&gt; $room,
+            'event'      =&gt; $event,
+            'payload'    =&gt; $payload,
+            'self_emit'  =&gt; $target !== EmitTarget::SELF_EXCEPT,
+        ], fn($value) =&gt; $value !== null);
+
+        return self::post('emit', $data);
+    }
+}</code></pre>
+      </div>
+
+      <h3>3.4 Client Authentication Ticket Route (<code>routes/api.php</code>)</h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (routes/api.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('auth.api')-&gt;get('/signal-ticket', function (Request $request) {
+    $appId     = getAppIdByUserClass($request-&gt;user-&gt;user_class ?? '');
+    $secret    = config('signal.signal_secret');
+    $timestamp = (string) time();
+    $projectId = config('signal.signal_project_id');
+    $userId    = (string) $request-&gt;user-&gt;id;
+
+    // HMAC signature matching the handshake validator on the Signal server
+    $signature = hash_hmac(
+        'sha256',
+        "{$appId}.{$timestamp}.{$projectId}.{$userId}",
+        $secret
+    );
+
+    return response()-&gt;json(compact('appId', 'timestamp', 'projectId', 'userId', 'signature'));
+});</code></pre>
+      </div>
+
+      <h3>3.5 Implementation Patterns &amp; Real-World Usage</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Core Purpose</th>
+            <th>Typical Use Cases</th>
+            <th>Payload Characteristics</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong><code>SignalService::taskEmit()</code></strong></td>
+            <td><strong>Progressive Operations</strong>: Multi-step async tasks with progress tracking.</td>
+            <td>&bull; File uploads / downloads<br>&bull; Large data import/export<br>&bull; Background jobs (e.g. student promotion)</td>
+            <td>Includes <code>progress_done</code>, <code>progress_total</code>, <code>progress_percent</code>, <code>socket_id</code>, and <code>taskId</code>.</td>
+          </tr>
+          <tr>
+            <td><strong><code>SignalService::eventEmit()</code><br>[type: notify]</strong></td>
+            <td><strong>Persistent Notifications</strong>: Updates badges and unread counters.</td>
+            <td>&bull; New invoice received<br>&bull; Approval request assigned<br>&bull; Payment alert</td>
+            <td>Includes <code>type: 'notify'</code>, item IDs, and notification messages.</td>
+          </tr>
+          <tr>
+            <td><strong><code>SignalService::eventEmit()</code><br>[type: realtime]</strong></td>
+            <td><strong>Instant State Refresh</strong>: Dynamic live screen updates without creating notifications.</td>
+            <td>&bull; Live table row update<br>&bull; Record locking<br>&bull; Status toggles</td>
+            <td>Payload data without triggering badge counter increments.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Pattern 1: Long-Running Process Tracking with <code>taskEmit</code></h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (app/Jobs/ProcessStudentTermTransfer.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>namespace App\Jobs;
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use App\Services\SignalService;
+
+class ProcessStudentTermTransfer implements ShouldQueue
+{
+    public $taskId;
+    public $senderSockerID;
+    public $ss;
+
+    public function handle()
+    {
+        // 1. Update task progress atomically
+        DB::table('sync_tasks')->where('id', $this->taskId)->update([
+            'progress_done' => DB::raw('progress_done + 1')
+        ]);
+
+        $task = DB::table('sync_tasks')->where('id', $this->taskId)->first();
+        $percent = ($task && $task->progress_total > 0)
+            ? round(($task->progress_done / $task->progress_total) * 100, 2)
+            : 0;
+
+        DB::table('sync_tasks')->where('id', $this->taskId)->update([
+            'progress_percent' => $percent,
+            'updated_at'       => now()
+        ]);
+
+        // 2. Throttle WebSocket emission to at most once every 2 seconds
+        $cacheKey = "task_last_emit_{$this->taskId}";
+        $currentTime = microtime(true);
+        $lastEmitTime = Cache::get($cacheKey, 0);
+
+        if ($currentTime - $lastEmitTime >= 2) {
+            Cache::put($cacheKey, $currentTime, 5);
+
+            SignalService::taskEmit(
+                event: 'term_promoting',
+                payload: [
+                    'progress_total'   => $task->progress_total ?? 0,
+                    'progress_done'    => $task->progress_done ?? 0,
+                    'progress_percent' => $percent,
+                    'socket_id'        => $this->senderSockerID,
+                ],
+                user_class: $this->ss->user_class ?? null,
+                socketId:   $this->senderSockerID,
+            );
+        }
+    }
+}</code></pre>
+      </div>
+
+      <h4>Pattern 2: In-App Notifications with <code>eventEmit</code> (<code>type: notify</code>)</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>use App\Services\SignalService;
+
+SignalService::eventEmit(
+    event: 'invoice_received',
+    payload: [
+        'invoice_id' => $data->invoice_id,
+        'receipt_id' => $data->receipt_id,
+        'message'    => $data->message,
+        'type'       => 'notify',
+    ],
+);</code></pre>
+      </div>
+
+      <h4>Pattern 3: Real-Time Live State Update with <code>eventEmit</code> (<code>type: realtime</code>)</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>use App\Services\SignalService;
+
+SignalService::eventEmit(
+    event: 'received',
+    payload: [
+        'invoice_id' => $invoice_id,
+        'receipt_id' => $receipt_id,
+        'message'    => 'Successfully received invoice',
+    ],
+);</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="frontend">
+      <h2>4. Frontend Client Integration</h2>
+
+      <h3>4.1 Blade Layout Setup &amp; Script Bundling</h3>
+      <h4>1. Required Meta Tags in <code>formal.blade.php</code></h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>Blade / HTML</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>&lt;head&gt;
+  &lt;!-- Application Identifiers for Signal --&gt;
+  &lt;meta name="app_id" content="{{ sess_app_id('formal') }}" /&gt;
+  &lt;meta name="sess_user_id" content="{{ sess_user_id() }}" /&gt;
+  &lt;meta name="base_url" content="{{ url('/') }}" /&gt;
+
+  &lt;!-- Inject Signal Environment Variables into Window Object --&gt;
+  &lt;script&gt;
+    window.APP_CONFIG = {
+      socketUrl: "{{ config('signal.signal_url') }}",
+      projectId: "{{ config('signal.signal_project_id') }}",
+    };
+  &lt;/script&gt;
+&lt;/head&gt;</code></pre>
+      </div>
+
+      <h4>2. Script Bundling via <code>script_bundles.php</code></h4>
+      <div class="alert alert-important">
+        <strong>Always place <code>signal.js</code> at the very end of your component bundle.</strong><br>
+        This guarantees all component classes, helpers, and dialogs are declared before <code>signal.js</code> starts processing events.
+      </div>
+      <div class="code-container">
+        <div class="code-header">
+          <span>PHP (config/script_bundles.php)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// config/script_bundles.php
+return [
+    'formal-components' =&gt; [
+        'attr'        =&gt; 'defer',
+        'single_file' =&gt; 1,
+        'output_file' =&gt; '/dist/js/ksm.components.js?v=8',
+        'files'       =&gt; [
+            // 1. Dependencies
+            'https://cdn.vectoraclouds.com/vsel/router/router.shell.js',
+            'https://cdn.socket.io/4.8.1/socket.io.min.js',
+
+            // 2. Base layout script
+            '/js/layout/formal/main.js',
+
+            // 3. UI Components (Loaded first)
+            '/js/components/formal/RenderTableReport.js',
+            '/js/components/formal/InvoicesComponent.js',
+            '/js/components/formal/GraduatedComponent.js',
+
+            // 4. Signal Client Hub (MUST BE AT THE VERY END)
+            '/js/signal.js',
+        ]
+    ],
+];</code></pre>
+      </div>
+
+      <h3>4.2 Signal Initialization in <code>main.js</code></h3>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JavaScript (main.js)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// main.js
+document.addEventListener("DOMContentLoaded", async () => {
+  if (window.Signal) {
+    setTimeout(() => {
+      // Parameters: userRooms = [], userEvents = [], isScan = false
+      window.Signal.init(null, null, false);
+    }, 2000);
+  }
+});</code></pre>
+      </div>
+
+      <h3>4.3 Dynamic Component Usage</h3>
+      <h4>1. Listen for Events Globally</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JavaScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>if (window.Signal) {
+  window.Signal.addListener("invoice_status_updated", null, (payload) => {
+    console.log("Invoice status changed:", payload);
+    myDataTable.reload();
+  });
+}</code></pre>
+      </div>
+
+      <h4>2. Join a Room with Callback</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JavaScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>window.Signal.joinRoom("invoice_102", "payment_confirmed", (payload) => {
+  Swal.fire("Success", "Payment confirmed for this invoice!", "success");
+  reloadInvoiceDetails();
+});</code></pre>
+      </div>
+
+      <h4>3. Getting Current <code>socket_id</code> to Send to Backend</h4>
+      <div class="code-container">
+        <div class="code-header">
+          <span>JavaScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>async function startTermPromotion() {
+  const socketId = await window.Signal.getSocketId();
+
+  fetch("/api/start-term-promotion", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({
+      academic_year: "2026",
+      socket_id: socketId, // Allows backend taskEmit to identify initiator
+    }),
+  });
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="devices">
+      <h2>5. Hardware Device Scan Integration</h2>
+      <p>For biometric, RFID, and facial recognition terminal integration (e.g. AiFace hardware devices), access verification workflows, and kiosk attendance monitors, please refer to the dedicated documentation:</p>
+
+      <div class="guide-card">
+        <div>
+          <h3 style="margin-top: 0; color: #fff;">Signal Device Scan &amp; Attendance Guide</h3>
+          <p style="margin-bottom: 0; color: #94a3b8;">Full architectural flow, port 8088 /pub/chat WebSocket server, Redis deduplication, and Laravel verification API.</p>
+        </div>
+        <a href="SIGNAL_DEVICE_SCAN_INTEGRATION_GUIDE.md" class="guide-btn">View Guide &rarr;</a>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section id="checklist">
+      <h2>6. Summary Checklist for Developers</h2>
+      <ul class="checklist">
+        <li><span class="check-box">&check;</span> <strong>1. .env Setup:</strong> Configure <code>SIGNAL_URL</code>, <code>SIGNAL_PROJECT_ID</code>, and <code>SIGNAL_SECRET</code>.</li>
+        <li><span class="check-box">&check;</span> <strong>2. NTP Clock Sync:</strong> Ensure server clocks are synchronized within 60 seconds of real time (<code>MAX_CLOCK_SKEW_SECONDS = 60</code>).</li>
+        <li><span class="check-box">&check;</span> <strong>3. Service Class:</strong> Place <code>SignalService.php</code> in <code>app/Services/</code>.</li>
+        <li><span class="check-box">&check;</span> <strong>4. API Route:</strong> Add <code>/api/signal-ticket</code> in <code>routes/api.php</code>.</li>
+        <li><span class="check-box">&check;</span> <strong>5. Script Bundling:</strong> Ensure <code>signal.js</code> is the <strong>last</strong> file in your component bundle (<code>script_bundles.php</code>).</li>
+        <li><span class="check-box">&check;</span> <strong>6. Client Init:</strong> Call <code>window.Signal.init(...)</code> inside <code>DOMContentLoaded</code> in <code>main.js</code>.</li>
+        <li><span class="check-box">&check;</span> <strong>7. Emission Patterns:</strong> Use <code>taskEmit</code> for progressive operations and <code>eventEmit</code> for notifications/realtime broadcasts.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    // Click to copy functionality
+    function copyCode(btn) {
+      const container = btn.closest('.code-container');
+      const code = container.querySelector('pre code').innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+
+    // Scrollspy navigation
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('nav.toc a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

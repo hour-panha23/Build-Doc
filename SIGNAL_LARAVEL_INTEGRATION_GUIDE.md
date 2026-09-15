@@ -67,11 +67,13 @@ The Signal integration is composed of three interconnected layers: the **Signal 
 ### 2.1 Component Breakdown
 
 #### A. Signal Service Server (`signal-service-api`)
+
 - **WebSocket Gateway**: Operates on a dedicated namespace (`/notifications`), managing long-lived WebSocket connections with clients.
 - **HMAC Verification Engine**: Validates client connection tickets and backend HTTP emit requests against the shared secret.
 - **Room Engine**: Routes messages based on project, application, user, or dynamic custom rooms.
 
 #### B. Laravel Backend Service Layer
+
 - **Configuration (`config/signal.php`)**:
   Holds the connection parameters (`SIGNAL_URL`, `SIGNAL_PROJECT_ID`, `SIGNAL_SECRET`).
 - **SignalService (`App\Services\SignalService`)**:
@@ -85,6 +87,7 @@ The Signal integration is composed of three interconnected layers: the **Signal 
   Generates a short-lived, signed ticket for the authenticated user to establish a WebSocket session with the Signal Service.
 
 #### C. Frontend Client Layer (`signal.js`)
+
 - **SignalManager Singleton**:
   - Automatically fetches tickets from Laravel's `/api/signal-ticket`.
   - Connects to the Signal server using Socket.io (`transports: ['websocket']`).
@@ -96,6 +99,7 @@ The Signal integration is composed of three interconnected layers: the **Signal 
 ### 2.2 Data Contract & Protocol Structure
 
 #### 1. Authentication Ticket Structure (Client to Signal Handshake)
+
 When the frontend connects to the Signal server, it submits authentication credentials in the Socket.IO handshake auth object:
 
 ```json
@@ -109,21 +113,24 @@ When the frontend connects to the Signal server, it submits authentication crede
 ```
 
 #### 2. Backend Emit Payload Structure (Laravel to Signal)
+
 When Laravel triggers an event via `SignalService::eventEmit()` or `taskEmit()`, it sends:
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `project_id` | `string` | Yes | Target project identifier |
-| `app_id` | `string` | Optional | Target application ID |
-| `user_id` | `string` | Optional | Specific target user ID |
-| `room` | `string` | Optional | Dynamic room/channel name |
-| `event` | `string` | Yes | Event name (e.g., `term_promoting`, `approval_updated`) |
-| `payload` | `array\|object` | Yes | Event payload data |
-| `self_emit` | `bool` | Optional | Whether to reflect back to sender socket |
-| `sender_socket_id`| `string` | Optional | Socket ID of the user initiating the action |
+| Field              | Type            | Required | Description                                             |
+| ------------------ | --------------- | -------- | ------------------------------------------------------- |
+| `project_id`       | `string`        | Yes      | Target project identifier                               |
+| `app_id`           | `string`        | Optional | Target application ID                                   |
+| `user_id`          | `string`        | Optional | Specific target user ID                                 |
+| `room`             | `string`        | Optional | Dynamic room/channel name                               |
+| `event`            | `string`        | Yes      | Event name (e.g., `term_promoting`, `approval_updated`) |
+| `payload`          | `array\|object` | Yes      | Event payload data                                      |
+| `self_emit`        | `bool`          | Optional | Whether to reflect back to sender socket                |
+| `sender_socket_id` | `string`        | Optional | Socket ID of the user initiating the action             |
 
 #### 3. Backend Header Security Signature
+
 All HTTP requests from Laravel to Signal Service include:
+
 - `x-project-id`: The configured project ID.
 - `x-timestamp`: Unix timestamp string.
 - `x-signature`: HMAC-SHA256 hash of `"{projectId}.{timestamp}"` with `SIGNAL_SECRET`.
@@ -139,14 +146,16 @@ All HTTP requests from Laravel to Signal Service include:
 The `signal-service-api` maintains structured, namespaced rooms internally to route events accurately:
 
 #### Internal Room Formats
-| Scope | Internal Room Name in Signal Gateway | Joined By |
-|---|---|---|
-| **Project Scope** | `project:{projectId}` | All apps and users in the project |
-| **App Scope** | `project:{projectId}:app:{appId}` | Specific app clients (e.g. Formal, Tutor) |
-| **Custom Room** | `project:{projectId}:app:{appId}:room:{roomId}` | Sockets joining via `join_room` |
-| **User Channel** | `user:{projectId}:{appId}:{userId}` & `user:{projectId}:{userId}` | User-scoped private notifications |
+
+| Scope             | Internal Room Name in Signal Gateway                              | Joined By                                 |
+| ----------------- | ----------------------------------------------------------------- | ----------------------------------------- |
+| **Project Scope** | `project:{projectId}`                                             | All apps and users in the project         |
+| **App Scope**     | `project:{projectId}:app:{appId}`                                 | Specific app clients (e.g. Formal, Tutor) |
+| **Custom Room**   | `project:{projectId}:app:{appId}:room:{roomId}`                   | Sockets joining via `join_room`           |
+| **User Channel**  | `user:{projectId}:{appId}:{userId}` & `user:{projectId}:{userId}` | User-scoped private notifications         |
 
 #### Routing Precedence in `NotificationsService.sendMessage`
+
 When Laravel posts a message to `/notifications/emit`, the Signal Service resolves the recipient target using the following waterfall precedence:
 
 1. **Target User**: If `user_id`, `app_id`, and `project_id` are provided $\rightarrow$ Emits to room `user:{projectId}:{appId}:{userId}`.
@@ -156,9 +165,9 @@ When Laravel posts a message to `/notifications/emit`, the Signal Service resolv
 5. **Broadcast**: If none of the above are specified $\rightarrow$ Emits to all active sockets connected to the gateway.
 
 #### Self-Emit & Sender Exclusion
+
 - If `self_emit: false` and `sender_socket_id` is passed, the Signal server uses `server.to(room).except(senderSocketId)` to prevent reflecting events back to the initiating user.
 - If `self_emit: true` and `sender_socket_id` is passed with no other targets, it targets `server.to(senderSocketId)` exclusively.
-
 
 ---
 
@@ -418,17 +427,17 @@ Route::middleware('auth.api')->get('/signal-ticket', function (Request $request)
 
 To ensure clean architecture and predictable client handling, Signal differentiates between progressive operations and discrete event broadcasts:
 
-| Method | Core Purpose | Typical Use Cases | Payload Characteristics |
-|---|---|---|---|
-| **`SignalService::taskEmit()`** | **Progressive Operations**: Tracking ongoing, multi-step asynchronous processes with measurable progress. | • File uploads / downloads<br>• Large data import / export (Excel/CSV)<br>• Bulk background jobs (e.g. student promotion, sync tasks)<br>• Heavy PDF / report generation | Includes `progress_done`, `progress_total`, `progress_percent`, `socket_id`, and `taskId`. |
-| **`SignalService::eventEmit()`<br>`[type: notify]`** | **Persistent Notifications**: Alerts that update notification badges and unread counters. | • New invoice received<br>• Approval request assigned<br>• Payment confirmation alert | Includes `type: 'notify'`, item IDs, and notification messages. |
-| **`SignalService::eventEmit()`<br>`[type: realtime]`** | **Instant State Refresh**: Lightweight broadcasts to dynamically update active screens without creating notifications. | • Live table row update<br>• Real-time record locking<br>• Chat messages or instant status toggles | Includes state data payloads without triggering badge counter increments. |
+| Method                                                 | Core Purpose                                                                                                           | Typical Use Cases                                                                                                                                                        | Payload Characteristics                                                                    |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| **`SignalService::taskEmit()`**                        | **Progressive Operations**: Tracking ongoing, multi-step asynchronous processes with measurable progress.              | • File uploads / downloads<br>• Large data import / export (Excel/CSV)<br>• Bulk background jobs (e.g. student promotion, sync tasks)<br>• Heavy PDF / report generation | Includes `progress_done`, `progress_total`, `progress_percent`, `socket_id`, and `taskId`. |
+| **`SignalService::eventEmit()`<br>`[type: notify]`**   | **Persistent Notifications**: Alerts that update notification badges and unread counters.                              | • New invoice received<br>• Approval request assigned<br>• Payment confirmation alert                                                                                    | Includes `type: 'notify'`, item IDs, and notification messages.                            |
+| **`SignalService::eventEmit()`<br>`[type: realtime]`** | **Instant State Refresh**: Lightweight broadcasts to dynamically update active screens without creating notifications. | • Live table row update<br>• Real-time record locking<br>• Chat messages or instant status toggles                                                                       | Includes state data payloads without triggering badge counter increments.                  |
 
 ---
 
 #### Pattern 1: Long-Running Process Tracking with `taskEmit`
-`taskEmit` is specifically designed for ongoing tasks that have incremental stages (such as file downloads, uploads, or queued background jobs). It includes the user's `socket_id` so the client can differentiate the task initiator from other users, and employs server-side throttling (via Cache) to prevent flooding the WebSocket gateway.
 
+`taskEmit` is specifically designed for ongoing tasks that have incremental stages (such as file downloads, uploads, or queued background jobs). It includes the user's `socket_id` so the client can differentiate the task initiator from other users, and employs server-side throttling (via Cache) to prevent flooding the WebSocket gateway.
 
 ```php
 namespace App\Jobs;
@@ -487,6 +496,7 @@ class ProcessStudentTermTransfer implements ShouldQueue
 ---
 
 #### Pattern 2: In-App Notifications with `eventEmit` (`type: notify`)
+
 When an action requires creating or updating an in-app notification badge / notification list (e.g. an invoice is received):
 
 ```php
@@ -502,11 +512,13 @@ SignalService::eventEmit(
     ],
 );
 ```
+
 > **Frontend Behavior**: The client increments unread badge counts (`#_main_notif_count`) and renders a notification card or toast.
 
 ---
 
 #### Pattern 3: Real-Time Live State Update with `eventEmit` (`type: realtime`)
+
 When an event only needs to trigger an immediate state refresh or UI update on active client screens without creating a persistent notification:
 
 ```php
@@ -521,6 +533,7 @@ SignalService::eventEmit(
     ],
 );
 ```
+
 > **Frontend Behavior**: The client listens directly for the `'received'` event and updates the active table or view dynamically without requiring a page reload.
 
 ---
@@ -534,22 +547,23 @@ This section details how to configure and initialize Signal on the client side, 
 In your main Blade layout (such as `formal.blade.php` or `main.blade.php`), configure the required metadata, inject backend environment parameters into `window.APP_CONFIG`, and bundle your JavaScript assets.
 
 #### 1. Required Meta Tags
+
 Signal requires `app_id` and `sess_user_id` to construct default room subscriptions and fetch valid authentication tickets:
 
 ```html
 <head>
-    <!-- Application Identifiers for Signal -->
-    <meta name="app_id" content="{{ sess_app_id('formal') }}" />
-    <meta name="sess_user_id" content="{{ sess_user_id() }}" />
-    <meta name="base_url" content="{{ url('/') }}" />
+  <!-- Application Identifiers for Signal -->
+  <meta name="app_id" content="{{ sess_app_id('formal') }}" />
+  <meta name="sess_user_id" content="{{ sess_user_id() }}" />
+  <meta name="base_url" content="{{ url('/') }}" />
 
-    <!-- Inject Signal Environment Variables into Window Object -->
-    <script>
-        window.APP_CONFIG = {
-            socketUrl: "{{ config('signal.signal_url') }}",
-            projectId: "{{ config('signal.signal_project_id') }}",
-        };
-    </script>
+  <!-- Inject Signal Environment Variables into Window Object -->
+  <script>
+    window.APP_CONFIG = {
+      socketUrl: "{{ config('signal.signal_url') }}",
+      projectId: "{{ config('signal.signal_project_id') }}",
+    };
+  </script>
 </head>
 ```
 
@@ -563,6 +577,7 @@ In this architecture, scripts are bundled through `script_bundles.php` and manag
 > If `signal.js` executes before your application components, UI dialogs, and DOM handlers are loaded, any real-time events triggered upon connection (such as notification toasts, unread badges, or task progress listeners) will attempt to interact with missing component objects and crash with undefined errors.
 
 ##### Bundle Configuration (`script_bundles.php`)
+
 In `script_bundles.php`, include the Socket.IO client library towards the top, followed by all UI components, and append `signal.js` as the **last file** in the bundle:
 
 ```php
@@ -596,6 +611,7 @@ return [
 ```
 
 ##### Blade Layout Rendering (`formal.blade.php`)
+
 In your Blade layout (`formal.blade.php`), the entire bundle is compiled and injected cleanly via `ScriptManager`:
 
 ```php
@@ -610,7 +626,6 @@ In your Blade layout (`formal.blade.php`), the entire bundle is compiled and inj
 </head>
 ```
 
-
 ---
 
 ### 4.2 Signal Initialization in `main.js`
@@ -620,16 +635,17 @@ In `main.js`, initialize `window.Signal` inside the `DOMContentLoaded` event lis
 ```javascript
 // main.js
 document.addEventListener("DOMContentLoaded", async () => {
-    if (window.Signal) {
-        setTimeout(() => {
-            // Parameters: userRooms = [], userEvents = [], isScan = false
-            window.Signal.init(null, null, false);
-        }, 2000);
-    }
+  if (window.Signal) {
+    setTimeout(() => {
+      // Parameters: userRooms = [], userEvents = [], isScan = false
+      window.Signal.init(null, null, false);
+    }, 2000);
+  }
 });
 ```
 
 When `init()` runs, it performs the following sequence:
+
 1. Refreshes current pending notification and approval counts via API.
 2. Resolves default rooms (`projectId`, `appId`, `userId`).
 3. Calls `/api/signal-ticket` to obtain an HMAC authentication ticket.
@@ -695,65 +711,71 @@ async bindDefaultEvents() {
 Individual page components, modals, or views can interact with `window.Signal` at any time after the page loads.
 
 #### 1. Listen for Events Globally or in a Specific Room
+
 Use `addListener` to capture real-time broadcasts in a component:
 
 ```javascript
 // Inside your component / blade script
 if (window.Signal) {
-    // Listen to an event globally
-    window.Signal.addListener("invoice_status_updated", null, (payload) => {
-        console.log("Invoice status changed:", payload);
-        myDataTable.reload(); // Refresh table view
-    });
+  // Listen to an event globally
+  window.Signal.addListener("invoice_status_updated", null, (payload) => {
+    console.log("Invoice status changed:", payload);
+    myDataTable.reload(); // Refresh table view
+  });
 }
 ```
 
 #### 2. Join a Specific Room with a Callback
+
 When entering a specific module (e.g. Invoice #102 or Class #45):
 
 ```javascript
 // Join a specific room and bind an event in one call
 window.Signal.joinRoom("invoice_102", "payment_confirmed", (payload) => {
-    Swal.fire("Success", "Payment confirmed for this invoice!", "success");
-    reloadInvoiceDetails();
+  Swal.fire("Success", "Payment confirmed for this invoice!", "success");
+  reloadInvoiceDetails();
 });
 ```
 
 #### 3. Join a Room with Multiple Event Listeners
+
 ```javascript
 window.Signal.joinRoomWithListeners("attendance_room", [
-    {
-        name: "student_checked_in",
-        callback: (data) => updateStudentRow(data.student_id, "present")
-    },
-    {
-        name: "student_absent",
-        callback: (data) => updateStudentRow(data.student_id, "absent")
-    }
+  {
+    name: "student_checked_in",
+    callback: (data) => updateStudentRow(data.student_id, "present"),
+  },
+  {
+    name: "student_absent",
+    callback: (data) => updateStudentRow(data.student_id, "absent"),
+  },
 ]);
 ```
 
 #### 4. Getting Current `socket_id` to Send to Backend
+
 When dispatching a long-running process from the frontend, get the current socket ID and pass it in your API request. The backend can then pass it to `taskEmit(..., socketId: $socketId)`:
 
 ```javascript
 // Component triggering a batch job or export
 async function startTermPromotion() {
-    const socketId = await window.Signal.getSocketId();
+  const socketId = await window.Signal.getSocketId();
 
-    fetch("/api/start-term-promotion", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            academic_year: "2026",
-            socket_id: socketId // Allows backend taskEmit to identify initiator
-        })
-    });
+  fetch("/api/start-term-promotion", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({
+      academic_year: "2026",
+      socket_id: socketId, // Allows backend taskEmit to identify initiator
+    }),
+  });
 }
 ```
+
+---
 
 ## 5. Hardware Device Scan Integration (Separate Guide)
 
@@ -775,8 +797,4 @@ For biometric, RFID, and facial recognition terminal integration (e.g. AiFace ha
   - Use `SignalService::taskEmit(...)` for long-running processes (with Cache throttling).
   - Use `SignalService::eventEmit(...)` with `type: 'notify'` for badges/unread counts.
   - Use `SignalService::eventEmit(...)` with `type: 'realtime'` for immediate UI state refresh.
-
-
-
-
 
