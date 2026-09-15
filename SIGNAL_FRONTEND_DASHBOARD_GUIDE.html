@@ -672,19 +672,21 @@
     <!-- SECTION 2 -->
     <section id="setup">
       <h2>2. Environment Configuration &amp; Setup</h2>
-      <p>Configure environment variables in <code>.env.local</code>:</p>
+      <p>The frontend application requires only a single environment variable configured in <code>.env</code>:</p>
 
       <div class="code-container">
         <div class="code-header">
-          <span>ENV (.env.local)</span>
+          <span>ENV (.env)</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre><code># Core Signal Service Gateway (NestJS REST & Socket)
-SIGNAL_API_URL=http://localhost:3000
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
+        <pre><code>BACKEND_URL=http://localhost:4000</code></pre>
+      </div>
 
-# Next.js Internal BFF Proxy Secret
-INTERNAL_PROXY_SECRET=your_secure_internal_proxy_secret</code></pre>
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div>
+          <code>BACKEND_URL</code> specifies the core <code>signal-service-api</code> backend instance. It is automatically utilized by both the BFF API proxy (<code>/api/proxy/[...path]</code>) to forward REST requests and the socket resolver (<code>/api/socket-url</code> &amp; <code>getSocketUrl</code>) to supply the WebSocket gateway address to browser clients.
+        </div>
       </div>
 
       <h3>Development Commands</h3>

@@ -52,18 +52,16 @@ flowchart TD
 ## 2. Environment Configuration & Setup
 
 ### 2.1 `.env` Configuration
-Configure the frontend environment in `.env.local` or `.env`:
+The frontend application requires only a single environment variable configured in `.env`:
 
 ```env
-# Backend API base URL for server-side proxying
-SIGNAL_API_URL=http://localhost:3000
-
-# Public or resolved Socket.IO server URL
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
-
-# Internal JWT / Proxy Secret (if applicable)
-INTERNAL_PROXY_SECRET=your_secure_proxy_secret
+BACKEND_URL=http://localhost:4000
 ```
+
+> [!NOTE]
+> `BACKEND_URL` specifies the core `signal-service-api` backend location (default port 4000). It is consumed across:
+> - **BFF Proxy (`/api/proxy/[...path]`)**: Forwards REST API calls directly to `${BACKEND_URL}`.
+> - **Socket URL Resolver (`/api/socket-url` & `getSocketUrl`)**: Supplies the WebSocket gateway URL to the client browser for Socket.io handshakes.
 
 ### 2.2 Local Development Commands
 ```bash
