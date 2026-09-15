@@ -94,6 +94,9 @@ flowchart TD
     TicketRoute -->|2. Return Signed Ticket| SM
     SM -->|3. Connect WebSocket (Ticket Auth)| WSGateway
     SM -->|4. Emit join_room| WSGateway
+    SignalSvc -->|5. HTTP POST (HMAC Signed)| HmacGuard
+    RelayEngine -->|6. Real-Time Push| SM
+    SM -->|7. UI Updates / Toasts / Badges| UI
 ```
 
 
@@ -807,27 +810,4 @@ async function startTermPromotion() {
   });
 }
 ```
-
----
-
-## 5. Hardware Device Scan Integration (Separate Guide)
-
-For biometric, RFID, and facial recognition terminal integration (e.g. AiFace hardware devices), access verification workflows, and kiosk attendance monitors, please refer to the dedicated guide:
-
-👉 **[Signal Device Scan & Attendance Integration Guide](SIGNAL_DEVICE_SCAN_INTEGRATION_GUIDE.md)**
-
----
-
-## 6. Summary Checklist for Developers
-
-- [ ] **1. `.env` Setup**: Configure `SIGNAL_URL`, `SIGNAL_PROJECT_ID`, and `SIGNAL_SECRET`.
-- [ ] **2. NTP Clock Sync**: Ensure server clocks are synchronized within 60 seconds of real time (`MAX_CLOCK_SKEW_SECONDS = 60`).
-- [ ] **3. Service Class**: Place `SignalService.php` in `app/Services/`.
-- [ ] **4. API Route**: Add `/api/signal-ticket` in `routes/api.php`.
-- [ ] **5. Script Bundling**: Ensure `signal.js` is the **last** file in your component bundle (`script_bundles.php`).
-- [ ] **6. Client Init**: Call `window.Signal.init(...)` inside `DOMContentLoaded` in `main.js`.
-- [ ] **7. Emission Patterns**:
-  - Use `SignalService::taskEmit(...)` for long-running processes (with Cache throttling).
-  - Use `SignalService::eventEmit(...)` with `type: 'notify'` for badges/unread counts.
-  - Use `SignalService::eventEmit(...)` with `type: 'realtime'` for immediate UI state refresh.
 

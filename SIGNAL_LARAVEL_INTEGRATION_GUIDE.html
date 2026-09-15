@@ -768,8 +768,6 @@
       <a href="#structure">2. Detailed Structure</a>
       <a href="#backend">3. Backend Configuration</a>
       <a href="#frontend">4. Frontend Integration</a>
-      <a href="#devices">5. Device Scanning</a>
-      <a href="#checklist">6. Developer Checklist</a>
     </nav>
   </aside>
 
@@ -1117,6 +1115,33 @@
                 <span class="pathway-action">Client emits <code>join_room</code> for project, application, and custom entity channels</span>
               </div>
               <span class="pathway-badge badge-ws">socket.emit('join_room')</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">5</span>
+                <span class="pathway-actors">Laravel <span class="pathway-arrow">&rarr;</span> Signal Gateway</span>
+                <span class="pathway-action">Backend signs and dispatches notification or task progress event</span>
+              </div>
+              <span class="pathway-badge badge-post">POST /notifications/emit</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">6</span>
+                <span class="pathway-actors">Signal Gateway <span class="pathway-arrow">&rarr;</span> Frontend</span>
+                <span class="pathway-action">Gateway pushes event to target room subscribers (filtering sender if <code>self_emit: false</code>)</span>
+              </div>
+              <span class="pathway-badge badge-ws">WebSocket Push</span>
+            </div>
+
+            <div class="pathway-row">
+              <div class="pathway-left">
+                <span class="pathway-step">7</span>
+                <span class="pathway-actors">Frontend Client</span>
+                <span class="pathway-action"><code>SignalManager</code> executes registered callbacks, updating DOM, progress bars, and toasts</span>
+              </div>
+              <span class="pathway-badge badge-ui">UI Re-render</span>
             </div>
           </div>
         </div>
@@ -1783,34 +1808,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 }</code></pre>
       </div>
-    </section>
-
-    <!-- SECTION 5 -->
-    <section id="devices">
-      <h2>5. Hardware Device Scan Integration</h2>
-      <p>For biometric, RFID, and facial recognition terminal integration (e.g. AiFace hardware devices), access verification workflows, and kiosk attendance monitors, please refer to the dedicated documentation:</p>
-
-      <div class="guide-card">
-        <div>
-          <h3 style="margin-top: 0; color: #fff;">Signal Device Scan &amp; Attendance Guide</h3>
-          <p style="margin-bottom: 0; color: #94a3b8;">Full architectural flow, port 8088 /pub/chat WebSocket server, Redis deduplication, and Laravel verification API.</p>
-        </div>
-        <a href="SIGNAL_DEVICE_SCAN_INTEGRATION_GUIDE.md" class="guide-btn">View Guide &rarr;</a>
-      </div>
-    </section>
-
-    <!-- SECTION 6 -->
-    <section id="checklist">
-      <h2>6. Summary Checklist for Developers</h2>
-      <ul class="checklist">
-        <li><span class="check-box">&check;</span> <strong>1. .env Setup:</strong> Configure <code>SIGNAL_URL</code>, <code>SIGNAL_PROJECT_ID</code>, and <code>SIGNAL_SECRET</code>.</li>
-        <li><span class="check-box">&check;</span> <strong>2. NTP Clock Sync:</strong> Ensure server clocks are synchronized within 60 seconds of real time (<code>MAX_CLOCK_SKEW_SECONDS = 60</code>).</li>
-        <li><span class="check-box">&check;</span> <strong>3. Service Class:</strong> Place <code>SignalService.php</code> in <code>app/Services/</code>.</li>
-        <li><span class="check-box">&check;</span> <strong>4. API Route:</strong> Add <code>/api/signal-ticket</code> in <code>routes/api.php</code>.</li>
-        <li><span class="check-box">&check;</span> <strong>5. Script Bundling:</strong> Ensure <code>signal.js</code> is the <strong>last</strong> file in your component bundle (<code>script_bundles.php</code>).</li>
-        <li><span class="check-box">&check;</span> <strong>6. Client Init:</strong> Call <code>window.Signal.init(...)</code> inside <code>DOMContentLoaded</code> in <code>main.js</code>.</li>
-        <li><span class="check-box">&check;</span> <strong>7. Emission Patterns:</strong> Use <code>taskEmit</code> for progressive operations and <code>eventEmit</code> for notifications/realtime broadcasts.</li>
-      </ul>
     </section>
   </main>
 
