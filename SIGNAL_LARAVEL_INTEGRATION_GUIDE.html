@@ -1118,33 +1118,6 @@
               </div>
               <span class="pathway-badge badge-ws">socket.emit('join_room')</span>
             </div>
-
-            <div class="pathway-row">
-              <div class="pathway-left">
-                <span class="pathway-step">5</span>
-                <span class="pathway-actors">Laravel <span class="pathway-arrow">&rarr;</span> Signal Gateway</span>
-                <span class="pathway-action">Backend signs and dispatches notification or task progress event</span>
-              </div>
-              <span class="pathway-badge badge-post">POST /notifications/emit</span>
-            </div>
-
-            <div class="pathway-row">
-              <div class="pathway-left">
-                <span class="pathway-step">6</span>
-                <span class="pathway-actors">Signal Gateway <span class="pathway-arrow">&rarr;</span> Frontend</span>
-                <span class="pathway-action">Gateway pushes event to target room subscribers (filtering sender if <code>self_emit: false</code>)</span>
-              </div>
-              <span class="pathway-badge badge-ws">WebSocket Push</span>
-            </div>
-
-            <div class="pathway-row">
-              <div class="pathway-left">
-                <span class="pathway-step">7</span>
-                <span class="pathway-actors">Frontend Client</span>
-                <span class="pathway-action"><code>SignalManager</code> executes registered callbacks, updating DOM, progress bars, and toasts</span>
-              </div>
-              <span class="pathway-badge badge-ui">UI Re-render</span>
-            </div>
           </div>
         </div>
       </div>

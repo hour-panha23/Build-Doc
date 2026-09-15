@@ -94,9 +94,6 @@ flowchart TD
     TicketRoute -->|2. Return Signed Ticket| SM
     SM -->|3. Connect WebSocket (Ticket Auth)| WSGateway
     SM -->|4. Emit join_room| WSGateway
-    SignalSvc -->|5. HTTP POST (HMAC Signed)| HmacGuard
-    RelayEngine -->|6. Real-Time Push| SM
-    SM -->|7. UI Updates / Toasts / Badges| UI
 ```
 
 
