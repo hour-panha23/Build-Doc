@@ -192,7 +192,10 @@ Once access is evaluated, Signal broadcasts the scan event to the mapped attenda
 
 ### 5.1 Script Bundling (`config/script_bundles.php`)
 
-For attendance monitor screens, bundle the attendance dependencies and include `signal.js`:
+For attendance monitor screens, bundle the attendance dependencies and include `signal.js`.
+
+> [!IMPORTANT]
+> **Loading Order Rule**: `/js/signal.js` **MUST be the last file** in the bundle. This ensures that all UI dialogs, date helpers, and attendance components (`ScanAttendanceComponent.js`) are fully loaded and defined before `signal.js` initializes and binds socket listeners.
 
 ```php
 // config/script_bundles.php
@@ -202,13 +205,13 @@ For attendance monitor screens, bundle the attendance dependencies and include `
     'output_file' => '/dist/js/attendance.js',
     'files'       => [
         'https://cdn.socket.io/4.8.1/socket.io.min.js',
-        '/js/signal.js',
         '/assets/js/sweetalert2.all.min.js',
         'https://cdn.vectoraclouds.com/vsel/components/quicktoast/QuickToast.js',
         'https://cdn.vectoraclouds.com/vsel/utils/DateHelper.js',
         'https://cdn.vectoraclouds.com/vsel/components/date_time_picker/DateTimePicker.js',
         'https://cdn.vectoraclouds.com/vsel/utils/vsapi.js',
-        '/js/components/formal/ScanAttendanceComponent.js'
+        '/js/components/formal/ScanAttendanceComponent.js',
+        '/js/signal.js' // MUST be the LAST file
     ]
 ]
 ```
@@ -244,14 +247,3 @@ async function initAttendanceMonitor(roomName) {
     });
 }
 ```
-
----
-
-## 6. Device Scan Integration Checklist
-
-- [ ] **1. Port Availability**: Ensure port `8088` is open and accessible by terminals on the local/VPN network.
-- [ ] **2. Device Registration**: Register the hardware device serial number (`sn`) in Signal Service (`POST /devices/create`).
-- [ ] **3. Internal Secret**: Configure matching `INTERNAL_API_SECRET` in both Signal Service (`.env`) and Laravel.
-- [ ] **4. Verification Endpoint**: Implement and test `POST /api/student/attendance/access-scan` in Laravel.
-- [ ] **5. Kiosk Ticket Route**: Ensure `GET /api/scan-attendance-signal-ticket` is active in `routes/api.php`.
-- [ ] **6. Client Initialization**: Ensure attendance frontend scripts call `window.Signal.init(..., true)` with `isScan = true`.
