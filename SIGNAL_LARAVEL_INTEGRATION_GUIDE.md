@@ -14,31 +14,21 @@ The architecture operates in two distinct, sequential phases: **Client Connectio
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor User as Client User
-    participant Client as Frontend Client (signal.js)
-    participant Laravel as Laravel Backend
-    participant Signal as Signal Service (signal-service-api)
+    participant Client as 💻 Frontend Client (signal.js)
+    participant Laravel as ⚙️ Laravel Backend
+    participant Signal as ⚡ Signal Service (signal-service-api)
 
-    rect rgba(99, 102, 241, 0.08)
-    Note over Client,Signal: PHASE 1: Client Connection & Room Subscription
+    Note over Client,Signal: ⚡ Phase 1: Client Connection & Room Subscription
     Client->>Laravel: 1. GET /api/signal-ticket (Auth Session)
     Laravel-->>Client: 2. Return Signed Ticket (appId, timestamp, projectId, userId, signature)
-    Client->>Signal: 3. Connect WebSocket (${SOCKET_URL}/notifications) with Ticket in auth
-    Signal->>Signal: 4. Verify HMAC signature & timestamp freshness (<= 60s)
-    Signal-->>Client: Connection Accepted (Socket ID assigned)
+    Client->>Signal: 3. Connect WebSocket (WSS /notifications with Ticket in auth)
+    Signal-->>Client: 4. Auth Verified (<=60s) & Socket ID Assigned
     Client->>Signal: 5. Emit "join_room" (Project, App, User & Custom Channels)
-    end
 
-    rect rgba(16, 185, 129, 0.08)
-    Note over Client,Signal: PHASE 2: Backend Event Emission & Real-Time Relay
-    Laravel->>Laravel: 6. Application Action triggers taskEmit() or eventEmit()
-    Laravel->>Laravel: 7. Automatically sign payload: sign(timestamp, rawBody)
-    Laravel->>Signal: 8. HTTP POST /notifications/emit (Headers: x-project-id, x-timestamp, x-signature)
-    Signal->>Signal: 9. HmacAuthGuard validates signature & resolves target rooms
-    Signal-->>Client: 10. Push Event over WebSocket to Room Subscribers
-    Client->>Client: 11. Execute Listener Callback (UI update, progress toast, badge counter)
-    end
+    Note over Client,Signal: 📡 Phase 2: Backend Event Emission & Real-Time Relay
+    Laravel->>Signal: 6. HTTP POST /notifications/emit (Headers: x-project-id, x-timestamp, x-signature)
+    Signal-->>Client: 7. Push Event over WebSocket to Room Subscribers
+    Client->>Client: 8. Trigger UI Listeners (Toasts, DOM Tables, Badge Counter)
 ```
 
 ### End-to-End Flow Summary Table
