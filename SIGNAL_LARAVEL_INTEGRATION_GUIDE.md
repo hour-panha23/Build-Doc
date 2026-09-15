@@ -631,7 +631,7 @@ return [
             '/js/components/formal/ClassAttendanceComponent.js',
             '/js/components/formal/GraduatedComponent.js',
 
-            // 4. Signal Client Hub (MUST BE AT THE VERY END)
+            // 4. Signal Client Hub (Should be at the end)
             '/js/signal.js',
         ]
     ],

@@ -194,8 +194,8 @@ Once access is evaluated, Signal broadcasts the scan event to the mapped attenda
 
 For attendance monitor screens, bundle the attendance dependencies and include `signal.js`.
 
-> [!IMPORTANT]
-> **Loading Order Rule**: `/js/signal.js` **MUST be the last file** in the bundle. This ensures that all UI dialogs, date helpers, and attendance components (`ScanAttendanceComponent.js`) are fully loaded and defined before `signal.js` initializes and binds socket listeners.
+> [!NOTE]
+> **Loading Order Recommendation**: `/js/signal.js` **should be the last file** in the bundle. This ensures that all UI dialogs, date helpers, and attendance components (`ScanAttendanceComponent.js`) are fully loaded and defined before `signal.js` initializes and binds socket listeners.
 
 ```php
 // config/script_bundles.php
@@ -211,7 +211,7 @@ For attendance monitor screens, bundle the attendance dependencies and include `
         'https://cdn.vectoraclouds.com/vsel/components/date_time_picker/DateTimePicker.js',
         'https://cdn.vectoraclouds.com/vsel/utils/vsapi.js',
         '/js/components/formal/ScanAttendanceComponent.js',
-        '/js/signal.js' // MUST be the LAST file
+        '/js/signal.js' // Should be at the last
     ]
 ]
 ```
